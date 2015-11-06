@@ -23,29 +23,34 @@ struct KernelIterator<'a> {
     reduced_rank: Vec<usize>, 
 }
 
-fn init_ranks(ki: &mut KernelIterator) {
-    let num_models = ki.ref_mod.num_models;
-    ki.full_rank.resize(num_models, 0);
-    ki.reduced_rank.resize(num_models, 0);
-    let mut total_kernels = 0;
-    for i in 0..num_models {
-        let nkernels = ki.ref_mod.models[i].num_kernels;
-        ki.full_rank[i] = nkernels;
-        total_kernels += nkernels;
-    }
-    let delta = total_kernels - ki.num_kernels;
+impl<'b> KernelIterator<'b> {
+    fn new(num_kernels: usize, ref_mod: &'b ModelArray) -> KernelIterator {
+        let num_models = ref_mod.num_models;
+        let mut full_rank     = vec![0; num_models];
+        let mut reduced_rank  = vec![0; num_models];
+        let mut total_kernels = 0;
+        for i in 0..num_models {
+            let nkernels = ref_mod.models[i].num_kernels;
+            full_rank[i] = nkernels;
+            total_kernels += nkernels;
+        }
+        let delta = total_kernels - num_kernels;
 
-    println!("total_kernels: {} num_kernels: {} delta: {}",
-             total_kernels, ki.num_kernels, delta);
+        println!("total_kernels: {} num_kernels: {} delta: {}",
+                 total_kernels, num_kernels, delta);
 
-    for i in 0..num_models {
-        let nkernels = ki.full_rank[i];
-        let fraction = nkernels as f64 / total_kernels as f64;
-        ki.reduced_rank[i] = nkernels - ((delta as f64 * fraction) as usize);
+        for i in 0..num_models {
+            let nkernels = full_rank[i];
+            let fraction = nkernels as f64 / total_kernels as f64;
+            reduced_rank[i] = nkernels - ((delta as f64 * fraction) as usize);
+        }
+
+        KernelIterator { num_kernels: num_kernels, state : (0, 0), ref_mod: ref_mod,
+                         full_rank: full_rank, reduced_rank: reduced_rank}
     }
 }
 
-impl<'b> Iterator for KernelIterator<'b> {
+impl<'c> Iterator for KernelIterator<'c> {
     type Item = Vec<Complex<f64>>;
 
     fn next(&mut self) -> Option<Vec<Complex<f64>>> {
@@ -67,9 +72,7 @@ fn main() {
 
     println!("mod_array is constructed and properly initialized: {:?}", mod_array);
 
-    let mut ki = KernelIterator {num_kernels : 17, state : (0, 0), ref_mod : &mod_array,
-                                 full_rank: Vec::new(), reduced_rank: Vec::new()};
-    init_ranks(&mut ki);
+    let mut ki = KernelIterator::new(17, &mod_array);
 
     println!("KernelIterator is constructed and properly initialized:m {:?}", ki);
 }
