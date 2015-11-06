@@ -1,0 +1,8 @@
+[package]
+name = "rust-samples"
+version = "0.0.1"
+authors = ["Alexander Samoilov <alexander.samoilov@gmail.com>"]
+
+[[bin]]
+name = "rust_array_update"
+path = "src/rust_array_update.rs"
