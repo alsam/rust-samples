@@ -51,8 +51,10 @@ impl<'b> KernelIterator<'b> {
 
     fn valid_state(&self) -> bool {
         let (model_index, kernel_index) = self.state;
-        model_index  < self.ref_mod.num_models &&
-        kernel_index < self.reduced_rank[model_index]
+        println!("inside `valid_state` model_index: {} kernel_index: {}", model_index, kernel_index);
+        println!("model_index  < self.ref_mod.num_models : {}", model_index  < self.ref_mod.num_models);
+        model_index  < self.ref_mod.num_models //&&
+        //kernel_index < self.reduced_rank[model_index]
     }
 
     fn advance_state(&mut self) -> bool {
@@ -79,11 +81,11 @@ impl<'c> Iterator for KernelIterator<'c> {
             let m = self.ref_mod;
             let ref model = m.models[model_index];
             println!("model_index: {} kernel_index: {}", model_index, kernel_index);
+            self.advance_state();
             Some(model.kernels[kernel_index].clone())
         } else {
             None
         };
-        self.advance_state();
         ret
     }
 }
@@ -106,7 +108,8 @@ fn main() {
 
     println!("KernelIterator is constructed and properly initialized: {:?}", ki);
 
-    for _ in ki {
+    for z in ki {
+        let kernel: &Vec<Complex<f64>> = &z;
     }
 }
 
