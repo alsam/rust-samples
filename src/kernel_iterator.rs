@@ -5,7 +5,7 @@ use num::complex::Complex;
 #[derive(Debug)]
 struct ModelSingle {
     num_kernels: usize,
-    kernels: Vec<Complex<f64>>,
+    kernels: Vec<Vec<Complex<f64>>>,
 }
 
 #[derive(Debug)]
@@ -51,7 +51,8 @@ impl<'b> KernelIterator<'b> {
 
     fn valid_state(&self) -> bool {
         let (model_index, kernel_index) = self.state;
-        model_index < self.ref_mod.num_models && kernel_index < self.full_rank[model_index]
+        model_index  < self.ref_mod.num_models &&
+        kernel_index < self.reduced_rank[model_index]
     }
 
     fn advance_state(&mut self) -> bool {
@@ -60,9 +61,10 @@ impl<'b> KernelIterator<'b> {
             self.state = (model_index, kernel_index + 1);
             true
         } else if model_index < self.ref_mod.num_models {
-            self.state = (model_index + 1, kernel_index);
+            self.state = (model_index + 1, 0);
             true
         } else {
+            self.state = (model_index + 1, kernel_index);
             false
         }
     }
@@ -72,19 +74,26 @@ impl<'c> Iterator for KernelIterator<'c> {
     type Item = Vec<Complex<f64>>;
 
     fn next(&mut self) -> Option<Vec<Complex<f64>>> {
-        let (model_index, kernel_index) = self.state;
-        let m = self.ref_mod;
-        //if 
-        None
+        let ret = if self.valid_state() {
+            let (model_index, kernel_index) = self.state;
+            let m = self.ref_mod;
+            let ref model = m.models[model_index];
+            println!("model_index: {} kernel_index: {}", model_index, kernel_index);
+            Some(model.kernels[kernel_index].clone())
+        } else {
+            None
+        };
+        self.advance_state();
+        ret
     }
 }
 
 fn main() {
     println!("This is a kernel_iterator test");
 
-    let kq1 = ModelSingle{num_kernels: 21, kernels: Vec::new()};
-    let kq2 = ModelSingle{num_kernels: 75, kernels: Vec::new()};
-    let kq3 = ModelSingle{num_kernels: 121, kernels: Vec::new()};
+    let kq1 = ModelSingle{num_kernels: 21,  kernels: vec![Vec::new(); 21]};
+    let kq2 = ModelSingle{num_kernels: 75,  kernels: vec![Vec::new(); 75]};
+    let kq3 = ModelSingle{num_kernels: 121, kernels: vec![Vec::new(); 121]};
 
     let mut mod_array = ModelArray {num_models: 3, models: Vec::new()};
     mod_array.models.push(kq1);
@@ -93,17 +102,11 @@ fn main() {
 
     println!("mod_array is constructed and properly initialized: {:?}", mod_array);
 
-    let mut ki = KernelIterator::new(17, &mod_array);
+    let ki = KernelIterator::new(17, &mod_array);
 
     println!("KernelIterator is constructed and properly initialized: {:?}", ki);
 
-    let mut done = false;
-    while !done {
-        let kernel = ki.next();
-        match kernel {
-            Some(_) => done = false,
-            None    => done = true
-        }
+    for _ in ki {
     }
 }
 

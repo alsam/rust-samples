@@ -26,4 +26,6 @@ fn main() {
     vec1[1] = 1;
     println!("vec1: {:?}", vec1);
 
+    //let mut vec2 = vec![|&i| vec![0; i]; 7];
+    let mut vec2 = vec![vec![0; 7]; 7];
 }
