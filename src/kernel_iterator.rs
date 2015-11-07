@@ -8,6 +8,13 @@ struct ModelSingle {
     kernels: Vec<Vec<Complex<f64>>>,
 }
 
+impl ModelSingle {
+    // a convenient constructor
+    fn new(num_kernels: usize) -> ModelSingle {
+        ModelSingle{num_kernels: num_kernels,  kernels: vec![Vec::new(); num_kernels]}
+    }
+}
+
 #[derive(Debug)]
 struct ModelArray {
     num_models: usize,
@@ -24,6 +31,7 @@ struct KernelIterator<'a> {
 }
 
 impl<'b> KernelIterator<'b> {
+    // a constructor
     fn new(num_kernels: usize, ref_mod: &'b ModelArray) -> KernelIterator {
         let num_models = ref_mod.num_models;
         let mut full_rank     = vec![0; num_models];
@@ -50,24 +58,16 @@ impl<'b> KernelIterator<'b> {
     }
 
     fn valid_state(&self) -> bool {
-        let (model_index, kernel_index) = self.state;
-        println!("inside `valid_state` model_index: {} kernel_index: {}", model_index, kernel_index);
-        println!("model_index  < self.ref_mod.num_models : {}", model_index  < self.ref_mod.num_models);
-        model_index  < self.ref_mod.num_models //&&
-        //kernel_index < self.reduced_rank[model_index]
+        let (model_index, _) = self.state;
+        model_index < self.ref_mod.num_models
     }
 
-    fn advance_state(&mut self) -> bool {
+    fn advance_state(&mut self) {
         let (model_index, kernel_index) = self.state;
         if kernel_index+1 < self.reduced_rank[model_index] {
             self.state = (model_index, kernel_index + 1);
-            true
-        } else if model_index < self.ref_mod.num_models {
-            self.state = (model_index + 1, 0);
-            true
         } else {
-            self.state = (model_index + 1, kernel_index);
-            false
+            self.state = (model_index + 1, 0);
         }
     }
 }
@@ -93,9 +93,9 @@ impl<'c> Iterator for KernelIterator<'c> {
 fn main() {
     println!("This is a kernel_iterator test");
 
-    let kq1 = ModelSingle{num_kernels: 21,  kernels: vec![Vec::new(); 21]};
-    let kq2 = ModelSingle{num_kernels: 75,  kernels: vec![Vec::new(); 75]};
-    let kq3 = ModelSingle{num_kernels: 121, kernels: vec![Vec::new(); 121]};
+    let kq1 = ModelSingle::new(21);
+    let kq2 = ModelSingle::new(75);
+    let kq3 = ModelSingle::new(121);
 
     let mut mod_array = ModelArray {num_models: 3, models: Vec::new()};
     mod_array.models.push(kq1);
