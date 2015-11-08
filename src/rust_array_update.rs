@@ -2,9 +2,7 @@
 
 // https://doc.rust-lang.org/std/slice/
 // http://rustbyexample.com/array.html
-#![feature(core)]
-extern crate core;
-use core::iter::FromIterator;
+use std::iter::FromIterator;
 
 fn main() {
     // slicing a Vec
@@ -34,11 +32,6 @@ fn main() {
     let mut vec2 = vec![vec![0; 7]; 7];
 
     // how to create a ragged array
-    // warning: crate core hasn't been stabilized yet
-    // `#![feature(core)]`
-    // `extern crate core;`
-    // `use core::iter::FromIterator;`
-    // is necessary
     let mut v = Vec::from_iter ((0..10) .map (|idx| vec![idx; idx * 2]));
     println!("v.len(): {} v[1].len(): {}", v.len(), v[1].len());
     println!("v: {:?}", v);
