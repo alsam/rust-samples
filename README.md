@@ -6,5 +6,6 @@ short rust code samples
 ```sh
 cargo build
 cargo run --bin kernel_iterator
+cargo test --bin binary_unate
 ```
 
