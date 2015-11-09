@@ -7,8 +7,8 @@ authors = ["Alexander Samoilov <alexander.samoilov@gmail.com>"]
 num = "*"
 
 [[bin]]
-name = "rust_array_update"
-path = "src/rust_array_update.rs"
+name = "array_vec_demo"
+path = "src/array_vec_demo.rs"
 
 [[bin]]
 name = "kernel_iterator"

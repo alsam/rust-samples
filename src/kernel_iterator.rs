@@ -76,7 +76,7 @@ impl<'c> Iterator for KernelIterator<'c> {
     type Item = Vec<Complex<f64>>;
 
     fn next(&mut self) -> Option<Vec<Complex<f64>>> {
-        let ret = if self.valid_state() {
+        if self.valid_state() {
             let (model_index, kernel_index) = self.state;
             let m = self.ref_mod;
             let ref model = m.models[model_index];
@@ -85,8 +85,7 @@ impl<'c> Iterator for KernelIterator<'c> {
             Some(model.kernels[kernel_index].clone())
         } else {
             None
-        };
-        ret
+        }
     }
 }
 
