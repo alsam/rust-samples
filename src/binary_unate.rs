@@ -37,7 +37,21 @@ fn test_contains_all_dont_cares_cube() {
             &LinkedList::from_iter(vec![vec![TriLogic::DontCare, TriLogic::DontCare, TriLogic::DontCare],
                                         vec![TriLogic::True,     TriLogic::False,    TriLogic::DontCare]])),
             "case2: [[DontCare, ...]]");
+}
 
+fn count_all_dont_cares(cube: &[TriLogic]) -> usize {
+    (*cube).iter().filter(|term| **term == TriLogic::DontCare).count()
+}
+
+fn count_all_not_dont_cares(cube: &[TriLogic]) -> usize {
+    (*cube).iter().filter(|term| **term != TriLogic::DontCare).count()
+}
+
+#[test]
+fn test_count_don_cares() {
+    let cube = [TriLogic::True, TriLogic::False, TriLogic::DontCare, TriLogic::DontCare, TriLogic::False, TriLogic::DontCare, TriLogic::True];
+    assert!(count_all_dont_cares(&cube) == 3, "count all dont_cares");
+    assert!(count_all_not_dont_cares(&cube) == 4, "count all not dont_cares");
 }
 
 fn main()
