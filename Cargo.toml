@@ -13,3 +13,7 @@ path = "src/array_vec_demo.rs"
 [[bin]]
 name = "kernel_iterator"
 path = "src/kernel_iterator.rs"
+
+[[bin]]
+name = "binary_unate"
+path = "src/binary_unate.rs"
