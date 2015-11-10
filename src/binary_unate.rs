@@ -174,7 +174,6 @@ fn main()
             {
                 num_cubes  = chunks[0].parse().ok().expect("a number expected");
                 println!("num_vars: {} num_cubes: {}", num_vars, num_cubes);
-                cube_list.resize(num_cubes, vec![TriLogic::DontCare; num_vars]);
             },
             _ =>
             {
@@ -184,8 +183,17 @@ fn main()
                                             .map (|idx| chunks[idx+1].parse().ok()
                                                   .expect("a number expected")));
                 println!("nterms: {} terms: {:?}", nterms, terms);
+                let mut cube = vec![TriLogic::DontCare; num_vars];
+                for term in terms.iter() {
+                    if *term > 0 {
+                        cube[( *term - 1) as usize] = TriLogic::True;
+                    } else {
+                        cube[(-*term - 1) as usize] = TriLogic::False;
+                    }
+                }
+                cube_list.push(cube);
             }
         }
-
     }
+    println!("cube_list: {:?}", cube_list);
 }
