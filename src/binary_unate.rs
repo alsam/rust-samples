@@ -11,6 +11,9 @@ use std::path::Path;
 use std::collections::LinkedList;
 use std::iter::FromIterator;
 
+// for Ord
+use std::cmp::Ordering;
+
 #[derive(Clone, Debug, PartialEq, PartialOrd, Eq, Ord)]
 enum TriLogic {
     True      = 0b01,
@@ -49,9 +52,37 @@ fn count_all_not_dont_cares(cube: &[TriLogic]) -> usize {
 
 #[test]
 fn test_count_don_cares() {
-    let cube = [TriLogic::True, TriLogic::False, TriLogic::DontCare, TriLogic::DontCare, TriLogic::False, TriLogic::DontCare, TriLogic::True];
+    let cube = [TriLogic::True,     TriLogic::False,
+                TriLogic::DontCare, TriLogic::DontCare,
+                TriLogic::False,    TriLogic::DontCare, TriLogic::True];
     assert!(count_all_dont_cares(&cube) == 3, "count all dont_cares");
     assert!(count_all_not_dont_cares(&cube) == 4, "count all not dont_cares");
+}
+fn most_binate_variable(F: &CubeList) -> usize {
+
+    #[derive(Clone, PartialEq, PartialOrd, Eq)]
+    struct BinateVarAttrs(i32, i32, i32); // True, Complement, Index
+
+    impl std::cmp::Ord for BinateVarAttrs {
+        #[inline]
+        fn cmp(&self, other: &BinateVarAttrs) -> Ordering {
+            match (self, other) {
+                (&BinateVarAttrs(t1, c1, i1), &BinateVarAttrs(t2, c2, i2)) =>
+                    if      t2+c2 < t1+c1 { Ordering::Less }
+                    else if t2+c2 > t1+c1 { Ordering::Greater }
+                    else { // t1+c1 == t2+c2
+                        if      (t1 - c1).abs() < (t2 - c2).abs() { Ordering::Less }
+                        else if (t1 - c1).abs() > (t2 - c2).abs() { Ordering::Greater }
+                        else if i1 < i2 { Ordering::Less }
+                        else { Ordering::Equal }
+                    }
+
+            }
+
+        }
+
+    }
+    0 as usize
 }
 
 fn main()
