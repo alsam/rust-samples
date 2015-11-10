@@ -184,6 +184,49 @@ fn cofactors_test() {
     assert!(fc.front().unwrap() ==    &[TriLogic::True,     TriLogic::True, TriLogic::DontCare, TriLogic::True],      "fc -- 1st cube");
 }
 
+// x offset is 1 to distinguish positive x and negative x'
+fn AND(x: isize, F: &CubeList) -> CubeList {
+    let ind = (x.abs() - 1) as usize;
+    // check that cubelist lacks variable x
+    assert!(F.iter().all(|c| c[ind] == TriLogic::DontCare ) );
+    let mut and_list: CubeList = LinkedList::new();
+    for c in F.iter() {
+        let mut cube = c.clone();
+        cube[ind] = if x > 0 { TriLogic::True } else { TriLogic::False };
+        and_list.push_back(cube)
+    }
+    and_list
+}
+
+#[test]
+fn AND_test() {
+    let clist: CubeList = LinkedList::from_iter(
+        vec![vec![TriLogic::DontCare, TriLogic::True,     TriLogic::True, TriLogic::DontCare],
+             vec![TriLogic::DontCare, TriLogic::DontCare, TriLogic::True, TriLogic::False]]);
+    let mut anda = AND(1, &clist);
+    assert!(anda.len() == 2, "and_test list length check");
+    assert!(anda.front().unwrap() ==    &[TriLogic::True, TriLogic::True,     TriLogic::True, TriLogic::DontCare], "and_test 1st cube");
+    assert!(anda.pop_back() == Some( vec![TriLogic::True, TriLogic::DontCare, TriLogic::True, TriLogic::False]),   "and_test 2nd cube");
+}
+
+fn OR(P: &CubeList, N: &CubeList) -> CubeList {
+    let mut or_list = P.clone();
+    or_list.append(&mut N.clone());
+    or_list
+}
+
+#[test]
+fn OR_test() {
+    let clist1: CubeList = LinkedList::from_iter(
+        vec![vec![TriLogic::DontCare, TriLogic::True,     TriLogic::True, TriLogic::DontCare],
+             vec![TriLogic::DontCare, TriLogic::DontCare, TriLogic::True, TriLogic::False]]);
+    let clist2: CubeList = LinkedList::from_iter(
+        vec![vec![TriLogic::True,     TriLogic::False,    TriLogic::True, TriLogic::DontCare],
+             vec![TriLogic::DontCare, TriLogic::DontCare, TriLogic::True, TriLogic::False]]);
+    let or_list = OR(&clist1, &clist2);
+    assert!(or_list.len() == 4, "or_test list length check");
+}
+
 fn direct_complement(F: &CubeList) -> CubeList {
     F.clone()
 }
