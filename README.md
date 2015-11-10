@@ -20,5 +20,12 @@ nterms: 2 terms: [-1, 5]
 nterms: 3 terms: [1, -3, -4]
 <6> :
 cube_list: [[DontCare, True, True, True, DontCare], [False, DontCare, DontCare, DontCare, True], [True, DontCare, False, False, DontCare]]
+tie[0] = (1,1,0)
+tie[1] = (1,0,1)
+tie[2] = (1,1,2)
+tie[3] = (1,1,3)
+tie[4] = (1,0,4)
+sorted binate: [BinateVarAttrs(1, 1, 0), BinateVarAttrs(1, 1, 2), BinateVarAttrs(1, 1, 3)]
+split_var_idx = 0
 ```
 

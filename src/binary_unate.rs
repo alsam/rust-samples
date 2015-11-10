@@ -61,7 +61,7 @@ fn test_count_don_cares() {
 
 fn most_binate_variable(F: &CubeList) -> usize {
 
-    #[derive(Clone, PartialEq, PartialOrd, Eq)]
+    #[derive(Clone, PartialEq, PartialOrd, Eq, Debug)]
     struct BinateVarAttrs(isize, isize, isize); // True, Complement, Index
 
     impl std::cmp::Ord for BinateVarAttrs {
@@ -136,14 +136,45 @@ fn most_binate_variable(F: &CubeList) -> usize {
 
     let there_are_binate_vars = tie.iter()
         .any(|x| match *x { BinateVarAttrs(t,c,_) => t > 0 && c > 0 } );
-    if there_are_binate_vars {
+    let split_var_idx = if there_are_binate_vars {
         // filter tie, leave only binate cubes
-        let tie_binate: Vec<BinateVarAttrs> = tie.iter()
+        let mut tie_binate: Vec<BinateVarAttrs> = tie.iter()
             .filter(|&x| match *x { BinateVarAttrs(t,c,_)  => t > 0 && c > 0  } )
             .map(|x| x.clone()).collect();
-    }
+        tie_binate.sort_by(cmp_binate);
+        println!("sorted binate: {:?}", tie_binate);
+        let BinateVarAttrs(_, _, split_var_idx) = tie_binate[0];
+        split_var_idx
+    } else {
+        tie.sort_by(cmp_unate);
+        let BinateVarAttrs(_, _, split_var_idx) = tie[0];
+        split_var_idx
+    };
+    println!("split_var_idx = {}", split_var_idx);
+    split_var_idx as usize
+}
 
-    0 as usize
+fn direct_complement(F: &CubeList) -> CubeList {
+    F.clone()
+}
+
+fn Complement(num_vars: usize, F: &CubeList) -> CubeList {
+    let F_is_simple = || -> (bool, CubeList) {
+        if F.len() == 0 { // empty cube list
+            let mut clist: CubeList = LinkedList::new();
+            clist.push_back(vec![TriLogic::DontCare; num_vars]);
+            (true, clist)
+        } else if cubelist_contains_all_dont_cares_cube(F) {
+            (true, LinkedList::new())
+        } else if F.len() == 1 { // cube list contains exactly one cube
+            (true, direct_complement(F))
+        } else {
+            (false, LinkedList::new())
+        }
+    };
+
+    let x = most_binate_variable(F);
+    F.clone()
 }
 
 fn main()
@@ -196,4 +227,5 @@ fn main()
         }
     }
     println!("cube_list: {:?}", cube_list);
+    let compl = Complement(num_vars, &LinkedList::from_iter(cube_list));
 }
