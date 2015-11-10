@@ -34,5 +34,11 @@ nterms: 3 terms: [1, -3, -4]
 <6> :
 cube_list: [[DontCare, True, True, True, DontCare], [False, DontCare, DontCare, DontCare, True], [True, DontCare, False, False, DontCare]]
 compl: [[True, False, True, DontCare, DontCare], [True, DontCare, True, False, DontCare], [True, DontCare, False, True, DontCare], [False, True, True, False, False], [False, True, False, DontCare, False], [False, False, DontCare, DontCare, False]]
+[ 01 10 01 11 11 ]
+[ 01 11 01 10 11 ]
+[ 01 11 10 01 11 ]
+[ 10 01 01 10 10 ]
+[ 10 01 10 11 10 ]
+[ 10 10 11 11 10 ]
 ```
 

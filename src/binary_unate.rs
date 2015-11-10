@@ -25,6 +25,7 @@
 use std::env;
 
 // io/fs ops
+use std::io;
 use std::io::prelude::*;
 use std::io::BufReader;
 use std::fs::{File, OpenOptions};
@@ -318,6 +319,27 @@ fn Complement(num_vars: usize, F: &CubeList) -> CubeList {
     }
 }
 
+fn WriteCubeList(fname: &str, F: &CubeList) -> Result<(), io::Error> {
+    let mut f = try!(File::create(fname));
+    try!(write!(f, "{}\n", F.front().unwrap().len())); // num vars
+    try!(write!(f, "{}\n", F.len())); // num cubes
+    for cube in F.iter() {
+        // print number of not dont_care terms
+        let num_of_not_dont_cares = count_all_not_dont_cares(&*cube);
+        try!(write!(f, "{}", num_of_not_dont_cares));
+        for i in 0..cube.len() {
+            match (*cube)[i] {
+                TriLogic::True      => { try!(write!(f," {}",  i+1)); }
+                TriLogic::False     => { try!(write!(f," {}", -(i as i32) +1) ); }
+                TriLogic::DontCare  => {} // do nothing 
+            }
+        } 
+        try!(write!(f,"\n"));
+    }
+
+    Ok(())
+}
+
 fn main()
 {
     let args: Vec<String> = env::args().collect();
@@ -370,4 +392,14 @@ fn main()
     println!("cube_list: {:?}", cube_list);
     let compl = Complement(num_vars, &LinkedList::from_iter(cube_list));
     println!("compl: {:?}", compl);
+
+    // print it in binary form
+    for cube in compl.iter() {
+        print!("[ ");
+        for term in cube.iter() {
+            print!("{:02b} ", (*term).clone() as usize);
+        }
+        println!("]");
+    }
+    WriteCubeList(&out_fname, &compl);
 }
