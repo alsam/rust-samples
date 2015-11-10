@@ -64,24 +64,7 @@ fn most_binate_variable(F: &CubeList) -> usize {
     #[derive(Clone, PartialEq, PartialOrd, Eq, Debug)]
     struct BinateVarAttrs(isize, isize, isize); // True, Complement, Index
 
-    impl std::cmp::Ord for BinateVarAttrs {
-        #[inline]
-        fn cmp(&self, other: &BinateVarAttrs) -> Ordering {
-            match (self, other) {
-                (&BinateVarAttrs(t1, c1, i1), &BinateVarAttrs(t2, c2, i2)) =>
-                    if      t2+c2 < t1+c1 { Ordering::Less }
-                    else if t2+c2 > t1+c1 { Ordering::Greater }
-                    else { // t1+c1 == t2+c2
-                        if      (t1 - c1).abs() < (t2 - c2).abs() { Ordering::Less }
-                        else if (t1 - c1).abs() > (t2 - c2).abs() { Ordering::Greater }
-                        else if i1 < i2 { Ordering::Less }
-                        else { Ordering::Equal }
-                    }
-
-            }
-        }
-    }
-
+    #[inline]
     fn cmp_binate(left: &BinateVarAttrs, right: &BinateVarAttrs) -> Ordering {
         match (left, right) {
             (&BinateVarAttrs(t1, c1, i1), &BinateVarAttrs(t2, c2, i2)) =>
@@ -98,6 +81,7 @@ fn most_binate_variable(F: &CubeList) -> usize {
 
     }
 
+    #[inline]
     fn cmp_unate(left: &BinateVarAttrs, right: &BinateVarAttrs) -> Ordering {
         match (left, right) {
             (&BinateVarAttrs(t1, c1, i1), &BinateVarAttrs(t2, c2, i2)) =>
@@ -152,6 +136,52 @@ fn most_binate_variable(F: &CubeList) -> usize {
     };
     println!("split_var_idx = {}", split_var_idx);
     split_var_idx as usize
+}
+
+fn positiveCofactor(F: &CubeList, x: usize) -> CubeList {
+    let mut cofactor_list: CubeList = LinkedList::new();
+    for c in F.iter() {
+        let mut cube = c.clone();
+        let term_val: TriLogic = cube[x].clone();
+        match term_val {
+            TriLogic::True      => {  cube[x] = TriLogic::DontCare;
+                                      cofactor_list.push_back(cube) }
+            TriLogic::False     => {} // => remove this cube
+            TriLogic::DontCare  => {  cofactor_list.push_back(cube) } // leave it as is
+        }
+    }
+    cofactor_list
+}
+
+fn negativeCofactor(F: &CubeList, x: usize) -> CubeList {
+    let mut cofactor_list: CubeList = LinkedList::new();
+    for c in F.iter() {
+        let mut cube = c.clone();
+        let term_val: TriLogic = cube[x].clone();
+        match term_val {
+            TriLogic::True      => {} // remove this cube
+            TriLogic::False     => {  cube[x] = TriLogic::DontCare;
+                                      cofactor_list.push_back(cube) }
+            TriLogic::DontCare  => {  cofactor_list.push_back(cube) } // leave it as is
+        }
+    }
+    cofactor_list
+}
+
+#[test]
+fn cofactors_test() {
+    let clist: CubeList = LinkedList::from_iter(
+        vec![vec![TriLogic::True,     TriLogic::True, TriLogic::DontCare, TriLogic::True],
+             vec![TriLogic::DontCare, TriLogic::True, TriLogic::False,    TriLogic::DontCare]]);
+
+    let mut fa = positiveCofactor(&clist, 0);
+    let fc = positiveCofactor(&clist, 2);
+
+    assert!(fa.len() == 2);
+    assert!(fc.len() == 1);
+    assert!(fa.front().unwrap() ==    &[TriLogic::DontCare, TriLogic::True, TriLogic::DontCare, TriLogic::True],      "fa -- 1st cube");
+    assert!(fa.pop_back() == Some( vec![TriLogic::DontCare, TriLogic::True, TriLogic::False,    TriLogic::DontCare]), "fa -- 2nd cube");
+    assert!(fc.front().unwrap() ==    &[TriLogic::True,     TriLogic::True, TriLogic::DontCare, TriLogic::True],      "fc -- 1st cube");
 }
 
 fn direct_complement(F: &CubeList) -> CubeList {

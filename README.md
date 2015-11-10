@@ -6,7 +6,17 @@ short rust code samples
 ```sh
 cargo build
 cargo run --bin kernel_iterator
+
 cargo test --bin binary_unate
+     Running target/debug/binary_unate-b4436249f664116b
+
+running 3 tests
+test test_count_don_cares ... ok
+test test_contains_all_dont_cares_cube ... ok
+test cofactors_test ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured
+
 cargo run --bin binary_unate data/UnateRecursiveComplement/part1.pcn part1.out
      Running `target/debug/binary_unate data/UnateRecursiveComplement/part1.pcn part1.out`
 <1> : 5
