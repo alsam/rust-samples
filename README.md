@@ -10,14 +10,15 @@ cargo run --bin kernel_iterator
 cargo test --bin binary_unate
      Running target/debug/binary_unate-b4436249f664116b
 
-unning 5 tests
-test test_count_don_cares ... ok
-test AND_test ... ok
+running 6 tests
 test cofactors_test ... ok
-test test_contains_all_dont_cares_cube ... ok
+test direct_complement_test ... ok
+test AND_test ... ok
 test OR_test ... ok
+test test_contains_all_dont_cares_cube ... ok
+test test_count_don_cares ... ok
 
-test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured
 
 cargo run --bin binary_unate data/UnateRecursiveComplement/part1.pcn part1.out
      Running `target/debug/binary_unate data/UnateRecursiveComplement/part1.pcn part1.out`

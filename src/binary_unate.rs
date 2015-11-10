@@ -99,9 +99,7 @@ fn most_binate_variable(F: &CubeList) -> usize {
                     else if i1 < i2 { Ordering::Less }
                     else { Ordering::Equal }
                 }
-        
         }
-
     }
 
     #[inline]
@@ -114,9 +112,7 @@ fn most_binate_variable(F: &CubeList) -> usize {
                     if i1 < i2 { Ordering::Less }
                     else { Ordering::Equal }
                 }
-        
         }
-
     }
 
     let num_cubes = F.len();
@@ -251,7 +247,44 @@ fn OR_test() {
 }
 
 fn direct_complement(F: &CubeList) -> CubeList {
-    F.clone()
+    // check that cubelist contains exactly one cube
+    assert!(F.len() == 1);
+    let cube = F.front().unwrap();
+    let mut result = LinkedList::new();
+    let num_vars = cube.len();
+    for i in 0 .. num_vars {
+        match cube[i] {
+            TriLogic::True =>  { let mut new_cube = vec![TriLogic::DontCare; num_vars];
+                                 new_cube[i] = TriLogic::False;
+                                 result.push_back(new_cube);
+                               }
+            TriLogic::False => { let mut new_cube = vec![TriLogic::DontCare; num_vars];
+                                 new_cube[i] = TriLogic::True;
+                                 result.push_back(new_cube);
+                               }
+            TriLogic::DontCare => {} // leave it as is
+        }
+
+    }
+    result
+}
+
+#[test]
+fn direct_complement_test() {
+    let clist: CubeList = LinkedList::from_iter(
+        vec![vec![TriLogic::DontCare, TriLogic::True, TriLogic::False, TriLogic::True]]);
+    let compl_list = direct_complement(&clist);
+    assert!(compl_list.len() == 3);
+    let mut cnt = 0;
+    for c in compl_list.iter() {
+        match (cnt, c) {
+            (0, c1) => { assert!(c1 == &[TriLogic::DontCare, TriLogic::False,    TriLogic::DontCare, TriLogic::DontCare]) }
+            (1, c2) => { assert!(c2 == &[TriLogic::DontCare, TriLogic::DontCare, TriLogic::True,     TriLogic::DontCare]) }
+            (2, c3) => { assert!(c3 == &[TriLogic::DontCare, TriLogic::DontCare, TriLogic::DontCare, TriLogic::False]) }
+            _ => panic!("impossible happened")
+        }
+        cnt += 1;
+    }
 }
 
 fn Complement(num_vars: usize, F: &CubeList) -> CubeList {
