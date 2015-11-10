@@ -134,7 +134,7 @@ fn most_binate_variable(F: &CubeList) -> usize {
 
     for k in 0..num_vars {
         let BinateVarAttrs(t,c,i) = tie[k];
-        println!("tie[{}] = ({},{},{})",k,t,c,i);
+        //println!("tie[{}] = ({},{},{})",k,t,c,i);
     }
 
     let there_are_binate_vars = tie.iter()
@@ -145,7 +145,7 @@ fn most_binate_variable(F: &CubeList) -> usize {
             .filter(|&x| match *x { BinateVarAttrs(t,c,_)  => t > 0 && c > 0  } )
             .map(|x| x.clone()).collect();
         tie_binate.sort_by(cmp_binate);
-        println!("sorted binate: {:?}", tie_binate);
+        //println!("sorted binate: {:?}", tie_binate);
         let BinateVarAttrs(_, _, split_var_idx) = tie_binate[0];
         split_var_idx
     } else {
@@ -153,7 +153,7 @@ fn most_binate_variable(F: &CubeList) -> usize {
         let BinateVarAttrs(_, _, split_var_idx) = tie[0];
         split_var_idx
     };
-    println!("split_var_idx = {}", split_var_idx);
+    //println!("split_var_idx = {}", split_var_idx);
     split_var_idx as usize
 }
 
@@ -264,7 +264,6 @@ fn direct_complement(F: &CubeList) -> CubeList {
                                }
             TriLogic::DontCare => {} // leave it as is
         }
-
     }
     result
 }
@@ -302,8 +301,21 @@ fn Complement(num_vars: usize, F: &CubeList) -> CubeList {
         }
     };
 
-    let x = most_binate_variable(F);
-    F.clone()
+    let check_simple = F_is_simple();
+    match check_simple {
+        (true,  x) => x,
+        (false, _) =>
+        {
+            // most binate variable for splitting
+            let x = most_binate_variable(F);
+            let mut P = Complement(num_vars, &positiveCofactor(F, x));
+            let mut N = Complement(num_vars, &negativeCofactor(F, x));
+            let and_ind = (x + 1) as isize;
+            P = AND( and_ind, &P);
+            N = AND(-and_ind, &N);
+            OR(&P, &N)
+        }
+    }
 }
 
 fn main()
@@ -357,4 +369,5 @@ fn main()
     }
     println!("cube_list: {:?}", cube_list);
     let compl = Complement(num_vars, &LinkedList::from_iter(cube_list));
+    println!("compl: {:?}", compl);
 }
