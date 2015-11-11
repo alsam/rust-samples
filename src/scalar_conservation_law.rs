@@ -46,20 +46,31 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+#![feature(duration_span)] 
+
 extern crate argparse;
 
+use std::time::Duration;
 use std::process::exit;
 use argparse::{ArgumentParser, StoreTrue, Store};
 
 struct Options {
     verbose: bool,
-    num_points: usize,
+    num_steps: usize,
+    num_cells: usize,
+    num_runs: usize,
+}
+
+fn do_computation(nsteps: usize, ncells: usize)
+{
 }
 
 fn main() {
     let mut options = Options {
         verbose: false,
-        num_points: 2000,
+        num_steps: 2000,
+        num_cells: 2000,
+        num_runs: 10,
     };
 
     {
@@ -68,9 +79,15 @@ fn main() {
         ap.refer(&mut options.verbose)
             .add_option(&["-v", "--verbose"], StoreTrue,
             "set verbose");
-        ap.refer(&mut options.num_points)
-            .add_option(&["--num_points"], Store,
-            "set number of grid points");
+        ap.refer(&mut options.num_steps)
+            .add_option(&["-t", "--num_steps"], Store,
+            "set number of time steps");
+        ap.refer(&mut options.num_cells)
+            .add_option(&["-n", "--num_cells"], Store,
+            "set number of grid cells");
+        ap.refer(&mut options.num_runs)
+            .add_option(&["-b", "--num_runs"], Store,
+            "set number of runs");
         match ap.parse_args() {
             Ok(()) => {}
             Err(x) => {
@@ -80,7 +97,18 @@ fn main() {
     }
 
     if options.verbose {
-        println!("number of grid points : {}", options.num_points);
+        println!("number of time steps : {} number of grid cells : {} number of runs : {}",
+                 options.num_steps, options.num_cells, options.num_runs);
     }
 
+    let d = Duration::span(||{
+        for r in 0..options.num_runs {
+            if options.verbose {
+                println!("run number : {}", r);
+            }
+
+            do_computation(options.num_steps, options.num_cells);
+        }
+    });
+    println!("elapsed time: {}", d.as_secs() as f64 + d.subsec_nanos()as f64 / 1000000000.0f64);
 }

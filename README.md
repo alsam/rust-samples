@@ -43,8 +43,16 @@ compl: [[True, False, True, DontCare, DontCare], [True, DontCare, True, False, D
 ```
 
 ```sh
-cargo run --bin scl -- --verbose --num_points 10000
-     Running `target/debug/scl --verbose --num_points 10000`
-number of grid points : 10000
+cargo run --bin scl -- --verbose --num_cells 10000 -b 7
+     Running `target/debug/scl --verbose --num_cells 10000 -b 7`
+number of time steps : 2000 number of grid cells : 10000 number of runs : 7
+run number : 0
+run number : 1
+run number : 2
+run number : 3
+run number : 4
+run number : 5
+run number : 6
+elapsed time: 0.000010197
 ```
 
