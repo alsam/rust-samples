@@ -46,11 +46,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#![feature(duration_span)] 
+#![feature(duration_span)]
 
 extern crate argparse;
 
 use std::time::Duration;
+use std::cmp;
 use std::process::exit;
 use argparse::{ArgumentParser, StoreTrue, Store};
 
@@ -61,16 +62,18 @@ struct Options {
     num_runs: usize,
 }
 
-fn do_computation(nsteps: usize, ncells: usize)
+fn do_computation(nsteps: usize, ncells: usize, tmax: f64, ifirst: usize, ilast: usize,
+                  statelft: f64, statergt: f64, velocity: f64, dt: f64,
+                  fc: isize, lc: usize, flux: &mut Vec<f64>, x: &Vec<f64>, u: &mut Vec<f64>)
 {
 }
 
 fn main() {
     let mut options = Options {
-        verbose: false,
+        verbose:   false,
         num_steps: 2000,
         num_cells: 2000,
-        num_runs: 10,
+        num_runs:  10,
     };
 
     {
@@ -101,14 +104,82 @@ fn main() {
                  options.num_steps, options.num_cells, options.num_runs);
     }
 
+    // problem-specific parameters:
+    const jump     : f64   =  0.0f64;
+    const x_left   : f64   = -0.2f64;
+    const x_right  : f64   =  1.0f64;
+    const statelft : f64   =  2.0f64;
+    const statergt : f64   =  0.0f64;
+    const velocity : f64   =  1.0f64;
+
+    const tmax     : f64   =  0.8f64;
+    const cfl      : f64   =  0.9f64;
+
+    // array bounds:
+    let   nsteps           = options.num_steps;
+    let   ncells           = options.num_cells;
+    const fc       : isize = -2;
+    let   lc               = ncells+1;
+    const ifirst   : usize = 0;
+    let   ilast            = ncells-1;
+
+    // work arrays
+    // #   double precision
+    // #  &  u(-2:ncells+1),
+    // #  &  x(0:ncells),
+    // #  &  flux(0:ncells)
+
+    let mut u    = vec![0.0f64; ncells+4];
+    let mut x    = vec![0.0f64; ncells+1];
+    let mut flux = vec![0.0f64; ncells+1];
+
+    //  uniform mesh:
+    let dx = (x_right-x_left) / ncells as f64;
+    for ie in ifirst .. ilast+1 {
+        x[ie] = x_left + ie as f64 * dx;
+    }
+
+    // initial values for diffential equation:
+    let ijump = cmp::max(ifirst as isize -1,
+                         cmp::min((ncells as f64 * (jump-x_left)/(x_right-x_left) + 0.5) as isize,
+                                  (ilast+1) as isize)) as usize;
+    if options.verbose {
+        println!("ijump : {}", ijump);
+    }
+
+    // left state to left of jump
+    for ic in ifirst .. ijump-1 {
+        u[ic+3] = statelft;
+    }
+
+    // volume-weighted average in cell containing jump
+    let frac = (jump-x_left-ijump as f64 *dx)/(x_right-x_left);
+    u[ijump+3] = statelft*frac+statergt*(1.0f64-frac);
+
+    // right state to right of jump
+    for ic in ijump+1 .. ilast {
+        u[ic+3]=statergt;
+    }
+
+    // stable timestep (independent of time for linear advection):
+    let mut mindx = 1.0e300f64;
+    for ic in ifirst .. ilast {
+        mindx = mindx.min(x[ic+2]-x[ic+1]);
+    }
+    let dt = cfl*mindx/velocity.abs();
+
+    let istep = 0;
+    let t = 0.0f64;
+
     let d = Duration::span(||{
         for r in 0..options.num_runs {
             if options.verbose {
                 println!("run number : {}", r);
             }
 
-            do_computation(options.num_steps, options.num_cells);
+            do_computation(nsteps, ncells, tmax, ifirst, ilast,
+                           statelft, statergt, velocity, dt, fc, lc, &mut flux, &x, &mut u);
         }
     });
-    println!("elapsed time: {}", d.as_secs() as f64 + d.subsec_nanos()as f64 / 1000000000.0f64);
+    println!("elapsed time: {}", d.as_secs() as f64 + d.subsec_nanos() as f64 / 1.0e9f64);
 }
