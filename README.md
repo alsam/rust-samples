@@ -42,3 +42,9 @@ compl: [[True, False, True, DontCare, DontCare], [True, DontCare, True, False, D
 [ 10 10 11 11 10 ]
 ```
 
+```sh
+cargo run --bin scl -- --verbose --num_points 10000
+     Running `target/debug/scl --verbose --num_points 10000`
+number of grid points : 10000
+```
+

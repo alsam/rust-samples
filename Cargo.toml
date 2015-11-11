@@ -5,6 +5,7 @@ authors = ["Alexander Samoilov <alexander.samoilov@gmail.com>"]
 
 [dependencies]
 num = "*"
+argparse = "*"
 
 [[bin]]
 name = "array_vec_demo"
@@ -17,6 +18,10 @@ path = "src/kernel_iterator.rs"
 [[bin]]
 name = "dllist_demo"
 path = "src/dllist_demo.rs"
+
+[[bin]]
+name = "scl"
+path = "src/scalar_conservation_law.rs"
 
 [[bin]]
 name = "binary_unate"
