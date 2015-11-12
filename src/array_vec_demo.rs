@@ -2,6 +2,7 @@
 // https://doc.rust-lang.org/std/slice/
 // http://rustbyexample.com/array.html
 use std::iter::FromIterator;
+use std::cmp::Ordering;
 
 fn main() {
     // slicing a Vec
@@ -42,5 +43,14 @@ fn main() {
     // [9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9]]
 
     let v22 = v[2][2];
-    println!("v22: {}", v22)
+    println!("v22: {}", v22);
+
+    // fill a non-equidistant array
+    let dx = std::f64::consts::FRAC_PI_4; // 0.785398
+    let mut x = Vec::from_iter ((1..7) .map(|idx| ((idx as f64).sin() * dx).cos().abs() ) );
+    println!("x: {:?}", x);
+
+    // x.sort(); // error: the trait `core::cmp::Ord` is not implemented for the type `f64` [E0277]
+    x.sort_by(|&x,&y| if x < y { Ordering::Less } else if x > y { Ordering::Greater } else { Ordering::Equal } );
+    println!("ordered x: {:?}", x);
 }
