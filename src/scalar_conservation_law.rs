@@ -153,7 +153,7 @@ fn main() {
     let   ncells           = options.num_cells;
     const fc       : usize = 2;
     let   lc               = ncells+1;
-    const ifirst   : usize = 0;
+    const ifirst   : usize = 1;
     let   ilast            = ncells-1;
 
     // work arrays
