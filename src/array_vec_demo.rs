@@ -3,6 +3,7 @@
 // http://rustbyexample.com/array.html
 use std::iter::FromIterator;
 use std::cmp::Ordering;
+use std::slice::Windows;
 
 fn main() {
     // slicing a Vec
@@ -53,4 +54,14 @@ fn main() {
     // x.sort(); // error: the trait `core::cmp::Ord` is not implemented for the type `f64` [E0277]
     x.sort_by(|&x,&y| if x < y { Ordering::Less } else if x > y { Ordering::Greater } else { Ordering::Equal } );
     println!("ordered x: {:?}", x);
+
+    let dxv = Vec::from_iter ((0..x.len()-1) .map(|idx| (x[idx+1]-x[idx])));
+
+    println!("dxv: {:?}", dxv);
+
+    let dxv1 = Vec::from_iter (x.windows(2) .map(|w | (w[1]-w[0])));
+    let dxv2 = Vec::from_iter ( [0.7295467223444416, 0.7556433468867207, 0.7894463883160331, 0.8284895327495356, 0.9760168013869176, 0.9938640428738624] 
+                                .windows(2) .map(|w | (w[1]-w[0])));
+
+    println!("dxv1: {:?}", dxv);
 }
