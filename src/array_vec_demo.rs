@@ -33,7 +33,7 @@ fn main() {
     let mut vec2 = vec![vec![0; 7]; 7];
 
     // how to create a ragged array
-    let mut v = Vec::from_iter ((0..10) .map (|idx| vec![idx; idx * 2]));
+    let v = Vec::from_iter ((0..10) .map (|idx| vec![idx; idx * 2]));
     println!("v.len(): {} v[1].len(): {}", v.len(), v[1].len());
     println!("v: {:?}", v);
     // prints
@@ -52,7 +52,11 @@ fn main() {
     println!("x: {:?}", x);
 
     // x.sort(); // error: the trait `core::cmp::Ord` is not implemented for the type `f64` [E0277]
-    x.sort_by(|&x,&y| if x < y { Ordering::Less } else if x > y { Ordering::Greater } else { Ordering::Equal } );
+    x.sort_by(|&x,&y|
+        if      x < y { Ordering::Less }
+        else if x > y { Ordering::Greater }
+        else { Ordering::Equal } );
+
     println!("ordered x: {:?}", x);
 
     let dxv = Vec::from_iter ((0..x.len()-1) .map(|idx| (x[idx+1]-x[idx])));
@@ -70,7 +74,7 @@ fn main() {
     println!("dx = {}", dx);
 
     // put it together
-    let dx1 = (x.windows(2) .map(|w| (w[1]-w[0]))) .fold(std::f64::MAX, |dx, x| dx.min(x));
+    let dx1 = (x.windows(2) .map(|w| (w[1]-w[0]))) .fold(std::f64::MAX, |x1, x2| x1.min(x2));
     println!("dx1 = {}", dx1);
 
 }
