@@ -64,4 +64,8 @@ fn main() {
                                 .windows(2) .map(|w | (w[1]-w[0])));
 
     println!("dxv1: {:?}", dxv);
+
+
+    let mut dx = std::f64::MAX;
+
 }

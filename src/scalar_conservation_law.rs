@@ -180,7 +180,7 @@ fn main() {
     }
 
     // stable timestep (independent of time for linear advection):
-    let mut mindx = 1.0e300f64;
+    let mut mindx = std::f64::MAX;
     for ic in ifirst .. ilast {
         mindx = mindx.min(x[ic+2]-x[ic+1]);
     }
