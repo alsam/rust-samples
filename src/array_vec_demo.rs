@@ -11,7 +11,7 @@ fn main() {
     let int_slice = &vec[..];
     // coercing an array to a slice
     let str_slice: &[&str] = &["one", "two", "three"];
-    
+
     let x = &mut [1, 2, 3];
     println!("x: {:?}", x);
     x[1] = 7;
@@ -59,13 +59,16 @@ fn main() {
 
     println!("dxv: {:?}", dxv);
 
-    let dxv1 = Vec::from_iter (x.windows(2) .map(|w | (w[1]-w[0])));
-    let dxv2 = Vec::from_iter ( [0.7295467223444416, 0.7556433468867207, 0.7894463883160331, 0.8284895327495356, 0.9760168013869176, 0.9938640428738624] 
+    let dxv1 = Vec::from_iter (x.windows(2) .map(|w| (w[1]-w[0])));
+    let dxv2 = Vec::from_iter ( [0.7295467223444416, 0.7556433468867207, 0.7894463883160331, 0.8284895327495356, 0.9760168013869176, 0.9938640428738624]
                                 .windows(2) .map(|w | (w[1]-w[0])));
 
     println!("dxv1: {:?}", dxv);
 
+    //let mut dx = std::f64::MAX;
+    // minimum of Vectors
+    let dx = dxv1.iter().fold(std::f64::MAX, |dx, x| dx.min(*x));
 
-    let mut dx = std::f64::MAX;
+    println!("dx = {}", dx);
 
 }
