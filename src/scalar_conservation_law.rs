@@ -180,11 +180,12 @@ fn main() {
     }
 
     // stable timestep (independent of time for linear advection):
-    let mut mindx = std::f64::MAX;
-    for ic in ifirst .. ilast {
-        mindx = mindx.min(x[ic+2]-x[ic+1]);
-    }
-    let dt = cfl*mindx/velocity.abs();
+    // https://doc.rust-lang.org/std/primitive.slice.html#method.windows
+    let min_dx = x.windows(2) // iterator for adjacent pairs of a slice
+                  .map(|w| w[1]-w[0]) // i.e. [x[0], x[1]], [x[1], x[2]] ...
+                  .fold(std::f64::MAX, |x1, x2| x1.min(x2)); // `fold` to find `min`
+
+    let dt = cfl*min_dx/velocity.abs();
 
     let d = Duration::span(||{
         for r in 0..options.num_runs {
