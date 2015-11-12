@@ -60,8 +60,6 @@ fn main() {
     println!("dxv: {:?}", dxv);
 
     let dxv1 = Vec::from_iter (x.windows(2) .map(|w| (w[1]-w[0])));
-    let dxv2 = Vec::from_iter ( [0.7295467223444416, 0.7556433468867207, 0.7894463883160331, 0.8284895327495356, 0.9760168013869176, 0.9938640428738624]
-                                .windows(2) .map(|w | (w[1]-w[0])));
 
     println!("dxv1: {:?}", dxv);
 
@@ -70,5 +68,9 @@ fn main() {
     let dx = dxv1.iter().fold(std::f64::MAX, |dx, x| dx.min(*x));
 
     println!("dx = {}", dx);
+
+    // put it together
+    let dx1 = (x.windows(2) .map(|w| (w[1]-w[0]))) .fold(std::f64::MAX, |dx, x| dx.min(x));
+    println!("dx1 = {}", dx1);
 
 }
