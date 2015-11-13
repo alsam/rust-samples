@@ -66,44 +66,6 @@ struct Options {
     num_runs: usize,
 }
 
-fn do_computation(nsteps: usize, ncells: usize, tmax: f64, ifirst: usize, ilast: usize,
-                  statelft: f64, statergt: f64, velocity: f64, dt: f64,
-                  fc: usize, lc: usize, x: &Vec<f64>, u: &mut Vec<f64>)
-{
-    let mut istep   =   0;
-    let mut t       =   0.0f64;
-    let mut flux    =   vec![0.0f64; x.len()];
-
-    // loop over timesteps
-    while istep < nsteps && t < tmax {
-
-        // right boundary condition: outgoing wave
-        for ic in ncells .. lc {
-            u[ic]=u[ncells-1];
-        }
-        // left boundary condition: specified value
-        for ic in 0 .. fc {
-            u[ic]=statelft;
-        }
-
-        // upwind fluxes times dt (ie, flux time integral over cell side)
-        // assumes velocity > 0
-        let vdt=velocity*dt;
-        for ie in ifirst .. ilast+1 {
-            flux[ie]=vdt*u[ie-1];
-        }
-
-        // conservative difference
-        for ic in ifirst .. ilast {
-            u[ic] -= (flux[ic+1]-flux[ic]) / (x[ic+1]-x[ic])
-        }
-
-        // update time and step number
-        t       +=  dt;
-        istep   +=  1
-    }
-}
-
 fn min_dx(x: &[f64]) -> f64 {
     // https://doc.rust-lang.org/std/primitive.slice.html#method.windows
     let mdx = x.windows(2) // iterator for adjacent pairs of a slice
@@ -148,6 +110,44 @@ fn test_min_dx() {
     let abs_delta = (min_dx1 - min_dx2).abs();
     println!("abs_delta : {} min_dx1 : {} min_dx2 : {} x : {:?}", abs_delta, min_dx1, min_dx2, x);
     assert!(abs_delta < 1e-10, "min_dx");
+}
+
+fn do_computation(nsteps: usize, ncells: usize, tmax: f64, ifirst: usize, ilast: usize,
+                  statelft: f64, statergt: f64, velocity: f64, dt: f64,
+                  fc: usize, lc: usize, x: &Vec<f64>, u: &mut Vec<f64>)
+{
+    let mut istep   =   0;
+    let mut t       =   0.0f64;
+    let mut flux    =   vec![0.0f64; x.len()];
+
+    // loop over timesteps
+    while istep < nsteps && t < tmax {
+
+        // right boundary condition: outgoing wave
+        for ic in ncells .. lc {
+            u[ic]=u[ncells-1];
+        }
+        // left boundary condition: specified value
+        for ic in 0 .. fc {
+            u[ic]=statelft;
+        }
+
+        // upwind fluxes times dt (ie, flux time integral over cell side)
+        // assumes velocity > 0
+        let vdt=velocity*dt;
+        for ie in ifirst .. ilast+1 {
+            flux[ie]=vdt*u[ie-1];
+        }
+
+        // conservative difference
+        for ic in ifirst .. ilast {
+            u[ic] -= (flux[ic+1]-flux[ic]) / (x[ic+1]-x[ic])
+        }
+
+        // update time and step number
+        t       +=  dt;
+        istep   +=  1
+    }
 }
 
 fn main() {
