@@ -101,6 +101,24 @@ fn do_computation(nsteps: usize, ncells: usize, tmax: f64, ifirst: usize, ilast:
     }
 }
 
+#[test]
+fn test_min_dx() {
+    use std::iter::FromIterator;
+    use std::cmp::Ordering;
+
+    // 1. prepare none-equidistant vector `x`
+    let base_dx = std::f64::consts::FRAC_PI_4; // 0.785398
+    let mut x = Vec::from_iter ((1..7) .map(|idx| ((idx as f64).sin() * base_dx).cos().abs() ) );
+    x.sort_by(|&x,&y|
+        if      x < y { Ordering::Less }
+        else if x > y { Ordering::Greater }
+        else { Ordering::Equal } );
+    // FIXME
+    //let delta_x = x - &[0.7295467223444416, 0.7556433468867207, 0.7894463883160331,
+    //                    0.8284895327495356, 0.9760168013869176, 0.9938640428738624];
+    assert!(true);
+}
+
 fn main() {
     let mut options = Options {
         verbose:   false,
