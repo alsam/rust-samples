@@ -2,7 +2,7 @@
 // https://doc.rust-lang.org/std/slice/
 // http://rustbyexample.com/array.html
 extern crate num;
-use num::{Num, Zero, One};
+use num::{Num, Zero, One, Signed};
 
 use std::iter::FromIterator;
 use std::cmp::Ordering;
@@ -93,8 +93,21 @@ fn main() {
         Vec::from_iter (lhs.iter().zip(rhs.iter()) .map(|(&x,&y)| x.sub(y) ) )
     }
 
-    let delta_x = sub(&x, &[0.07295467223444416, 0.07556433468867207, 0.07894463883160331,
-                            0.08284895327495356, 0.09760168013869176, 0.09938640428738624]);
+    let delta_x = sub( &[0.07295467223444416, 0.07556433468867207, 0.07894463883160331,
+                         0.08284895327495356, 0.09760168013869176, 0.09938640428738624], &x);
 
     println!("delta_x: {:?}",delta_x);
+
+    let inf_norm =  delta_x .iter() .fold(delta_x[0].abs(), |x1, x2| (x1).max((*x2).abs()));
+    println!("inf_norm : {}", inf_norm);
+
+    fn infinity_norm<T: Num+Signed+Ord>(v: &[T]) -> T {
+        //let inf_norm = v.iter() .fold(v[0].abs(), |x1, x2| (x1).max((*x2).abs()));
+        let inf_norm = v.iter() .fold(v[0].abs(), |x1, x2| std::cmp::max(x1,(*x2).abs()));
+        inf_norm
+    }
+
+    // in instantiation : error: the trait `core::cmp::Ord` is not implemented for the type `f64` [E0277]
+    // println!("infinity_norm : {}", infinity_norm(&delta_x));
+
 }
