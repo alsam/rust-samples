@@ -104,7 +104,9 @@ fn main() {
     fn infinity_norm<T: Signed+PartialOrd>(v: &[T]) -> T {
         // the trait `Signed` does have `abs` but doesn't have `max`
         //let inf_norm = v.iter() .fold(v[0].abs(), |x1, x2| (x1).max((*x2).abs()));
-        let inf_norm = v.iter() .fold(v[0].abs(), |x1, x2| if x1 > (*x2).abs() { x1 } else { (*x2).abs() });
+        let inf_norm = v.iter()
+            .map(|x| (*x).abs())
+            .fold(v[0].abs(), |x1, x2| if x1 > x2 { x1 } else { x2 });
         inf_norm
     }
 
