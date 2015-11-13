@@ -50,6 +50,9 @@
 #![feature(duration_span)]
 
 extern crate argparse;
+extern crate num;
+
+use num::{Num, Zero, One, Signed};
 
 use std::time::Duration;
 use std::cmp;
@@ -101,22 +104,50 @@ fn do_computation(nsteps: usize, ncells: usize, tmax: f64, ifirst: usize, ilast:
     }
 }
 
+fn min_dx(x: &[f64]) -> f64 {
+    // https://doc.rust-lang.org/std/primitive.slice.html#method.windows
+    let mdx = x.windows(2) // iterator for adjacent pairs of a slice
+               .map(|w| w[1]-w[0]) // i.e. [x[0], x[1]], [x[1], x[2]] ...
+               .fold(std::f64::MAX, |x1, x2| x1.min(x2)); // `fold` to find `min`
+    mdx
+}
+
 #[test]
 fn test_min_dx() {
     use std::iter::FromIterator;
     use std::cmp::Ordering;
 
-    // 1. prepare none-equidistant vector `x`
+    fn sub<T: Num + Copy>(lhs: &[T], rhs: &[T]) -> Vec<T> {
+        Vec::from_iter (lhs.iter().zip(rhs.iter()) .map(|(&x,&y)| x - y ) )
+    }
+
+    // 1. prepare non-equidistant vector `x`
     let base_dx = std::f64::consts::FRAC_PI_4; // 0.785398
     let mut x = Vec::from_iter ((1..7) .map(|idx| ((idx as f64).sin() * base_dx).cos().abs() ) );
-    x.sort_by(|&x,&y|
+
+    x.sort_by(|&x, &y|
         if      x < y { Ordering::Less }
         else if x > y { Ordering::Greater }
         else { Ordering::Equal } );
-    // FIXME
-    //let delta_x = x - &[0.7295467223444416, 0.7556433468867207, 0.7894463883160331,
-    //                    0.8284895327495356, 0.9760168013869176, 0.9938640428738624];
-    assert!(true);
+    
+    let delta_x = sub(&x, &[0.7295467223444416, 0.7556433468867207, 0.7894463883160331,
+                            0.8284895327495356, 0.9760168013869176, 0.9938640428738624]);
+
+    let inf_norm = delta_x .iter() .fold(delta_x[0].abs(), |x1, x2| (x1).max((*x2).abs()));
+
+    assert!(inf_norm < 1e-10, "inf_norm");
+
+    // classical way
+    let mut min_dx1 = std::f64::MAX;
+    for i in 0 .. x.len()-1 {
+        min_dx1 = min_dx1.min(x[i+1]-x[i]);
+    }
+
+    // functional way
+    let min_dx2 = min_dx(&x);
+    let abs_delta = (min_dx1 - min_dx2).abs();
+    println!("abs_delta : {} min_dx1 : {} min_dx2 : {} x : {:?}", abs_delta, min_dx1, min_dx2, x);
+    assert!(abs_delta < 1e-10, "min_dx");
 }
 
 fn main() {
@@ -198,12 +229,8 @@ fn main() {
     }
 
     // stable timestep (independent of time for linear advection):
-    // https://doc.rust-lang.org/std/primitive.slice.html#method.windows
-    let min_dx = x.windows(2) // iterator for adjacent pairs of a slice
-                  .map(|w| w[1]-w[0]) // i.e. [x[0], x[1]], [x[1], x[2]] ...
-                  .fold(std::f64::MAX, |x1, x2| x1.min(x2)); // `fold` to find `min`
-
-    let dt = cfl*min_dx/velocity.abs();
+    let mindx = min_dx(&x);
+    let dt = cfl*mindx/velocity.abs();
 
     let d = Duration::span(||{
         for r in 0..options.num_runs {
