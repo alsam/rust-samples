@@ -5,6 +5,11 @@ use std::iter::FromIterator;
 type MyList =  LinkedList<Vec<usize>>;
 
 fn my_print(ll: &MyList) {
+    fn nested(l:&MyList) {
+        // nested functions are allowed
+        println!("len of the list {}", l.len());
+    }
+    nested(&ll);
     println!("list: {:?}",ll);
 }
 

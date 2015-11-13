@@ -1,9 +1,21 @@
 // partially borrowed from
 // https://doc.rust-lang.org/std/slice/
 // http://rustbyexample.com/array.html
+extern crate num;
+use num::{Num, Zero, One};
+
 use std::iter::FromIterator;
 use std::cmp::Ordering;
 use std::slice::Windows;
+use std::ops::{Add, Sub, Mul};
+
+//impl Sub<Vec<f64>> for Vec<f64> {
+//    type Output = Self;
+//    fn sub(self, rhs: Self) -> Self {
+//        Vec::from_iter (self.iter().zip(rhs.iter()) .map(|(&x,&y)| x - y ) )
+//    }
+//}
+
 
 fn main() {
     // slicing a Vec
@@ -77,4 +89,12 @@ fn main() {
     let dx1 = (x.windows(2) .map(|w| (w[1]-w[0]))) .fold(std::f64::MAX, |x1, x2| x1.min(x2));
     println!("dx1 = {}", dx1);
 
+    fn sub<T: Num + Copy>(lhs: &[T], rhs: &[T]) -> Vec<T> {
+        Vec::from_iter (lhs.iter().zip(rhs.iter()) .map(|(&x,&y)| x.sub(y) ) )
+    }
+
+    let delta_x = sub(&x, &[0.07295467223444416, 0.07556433468867207, 0.07894463883160331,
+                            0.08284895327495356, 0.09760168013869176, 0.09938640428738624]);
+
+    println!("delta_x: {:?}",delta_x);
 }
