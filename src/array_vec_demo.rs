@@ -2,7 +2,7 @@
 // https://doc.rust-lang.org/std/slice/
 // http://rustbyexample.com/array.html
 extern crate num;
-use num::{Num, Zero, One, Signed};
+use num::{Num, Zero, One, Signed, NumCast};
 
 use std::iter::FromIterator;
 use std::cmp::Ordering;
@@ -101,13 +101,13 @@ fn main() {
     let inf_norm =  delta_x .iter() .fold(delta_x[0].abs(), |x1, x2| (x1).max((*x2).abs()));
     println!("inf_norm : {}", inf_norm);
 
-    fn infinity_norm<T: Num+Signed+Ord>(v: &[T]) -> T {
+    fn infinity_norm<T: Signed+PartialOrd>(v: &[T]) -> T {
+        // the trait `Signed` does have `abs` but doesn't have `max`
         //let inf_norm = v.iter() .fold(v[0].abs(), |x1, x2| (x1).max((*x2).abs()));
-        let inf_norm = v.iter() .fold(v[0].abs(), |x1, x2| std::cmp::max(x1,(*x2).abs()));
+        let inf_norm = v.iter() .fold(v[0].abs(), |x1, x2| if x1 > (*x2).abs() { x1 } else { (*x2).abs() });
         inf_norm
     }
 
-    // in instantiation : error: the trait `core::cmp::Ord` is not implemented for the type `f64` [E0277]
-    // println!("infinity_norm : {}", infinity_norm(&delta_x));
+    println!("infinity_norm : {}", infinity_norm(&delta_x));
 
 }
