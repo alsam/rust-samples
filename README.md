@@ -57,3 +57,28 @@ run number : 6
 elapsed time: 28.639034207999998
 ```
 
+## `scl` in *debug* vs *release* mode
+```sh
+./target/debug/scl --verbose --num_cells 10000 -b 7
+number of time steps : 2000 number of grid cells : 10000 number of runs : 7
+ijump : 1667
+run number : 0
+run number : 1
+run number : 2
+run number : 3
+run number : 4
+run number : 5
+run number : 6
+elapsed time: 28.30373625s.
+./target/release/scl --verbose --num_cells 10000 -b 7
+number of time steps : 2000 number of grid cells : 10000 number of runs : 7
+ijump : 1667
+run number : 0
+run number : 1
+run number : 2
+run number : 3
+run number : 4
+run number : 5
+run number : 6
+elapsed time: 0.515229039s.
+```

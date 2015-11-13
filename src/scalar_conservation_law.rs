@@ -91,7 +91,7 @@ fn test_min_dx() {
         if      x < y { Ordering::Less }
         else if x > y { Ordering::Greater }
         else { Ordering::Equal } );
-    
+
     let delta_x = sub(&x, &[0.7295467223444416, 0.7556433468867207, 0.7894463883160331,
                             0.8284895327495356, 0.9760168013869176, 0.9938640428738624]);
 
@@ -256,5 +256,5 @@ fn main() {
                            statelft, statergt, velocity, dt, fc, lc, &x, &mut u);
         }
     });
-    println!("elapsed time: {}", d.as_secs() as f64 + d.subsec_nanos() as f64 / 1.0e9f64);
+    println!("elapsed time: {}s.", d.as_secs() as f64 + d.subsec_nanos() as f64 / 1.0e9f64);
 }
