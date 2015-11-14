@@ -2,11 +2,11 @@
 #  Makefile for running rust samples
 #
 
-build_all:
+build:
 	cargo build
 
-build_all_release:
-	cargo build release
+release:
+	cargo build --release
 
 array_vec:
 	cargo run --bin array_vec_demo
@@ -22,6 +22,9 @@ binary_unate_test:
 
 binary_unate:
 	cargo run --bin binary_unate data/UnateRecursiveComplement/part1.pcn part1.out
+
+scl_test:
+	cargo test --bin scl
 
 scl:
 	cargo run --bin scl -- --verbose --num_cells 10000 -b 7
