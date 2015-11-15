@@ -4,8 +4,9 @@ version = "0.0.1"
 authors = ["Alexander Samoilov <alexander.samoilov@gmail.com>"]
 
 [dependencies]
-num = "*"
 argparse = "*"
+num = "*"
+numeric = "*"
 
 [[bin]]
 name = "array_vec_demo"
@@ -22,6 +23,10 @@ path = "src/dllist_demo.rs"
 [[bin]]
 name = "scl"
 path = "src/scalar_conservation_law.rs"
+
+[[bin]]
+name = "scl_tr"
+path = "src/scalar_conservation_law_tensor.rs"
 
 [[bin]]
 name = "binary_unate"
