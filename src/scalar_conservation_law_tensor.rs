@@ -55,7 +55,7 @@ extern crate num;
 extern crate numeric;
 
 // http://numeric.rs/doc/numeric/tensor/struct.Tensor.html
-use numeric::Tensor;
+use numeric::{Tensor, AxisIndex};
 
 use num::{Num, Zero, One, Signed};
 
@@ -125,19 +125,22 @@ fn do_computation(nsteps: usize, ncells: usize, tmax: f64, ifirst: usize, ilast:
 {
     let mut istep   =   0;
     let mut t       =   0.0f64;
-    let mut flux    =   Tensor::new(vec![0.0f64; x.dim(0)]);
+    let mut flux    =   tensor![0.0f64; x.dim(0)];
 
     // loop over timesteps
     while istep < nsteps && t < tmax {
 
         // right boundary condition: outgoing wave
+        let rbc = u[ncells-1];
+        //u.slice_set( &[AxisIndex::SliceFrom(ncells as isize)], &tensor![rbc; fc] );
         for ic in ncells .. lc {
             u[ic]=u[ncells-1];
         }
         // left boundary condition: specified value
-        for ic in 0 .. fc {
-            u[ic]=statelft;
-        }
+        u.slice_set( &[AxisIndex::Slice(0, fc as isize)], &tensor![statelft; fc] );
+        //for ic in 0 .. fc {
+        //    u[ic]=statelft;
+        //}
 
         // upwind fluxes times dt (ie, flux time integral over cell side)
         // assumes velocity > 0
@@ -218,8 +221,8 @@ fn main() {
     // #  &  x(0:ncells),
     // #  &  flux(0:ncells)
 
-    let mut u    = Tensor::new(vec![0.0f64; ncells+4]);
-    let mut x    = Tensor::new(vec![0.0f64; ncells+1]);
+    let mut u    = tensor![0.0f64; ncells+4];
+    let mut x    = tensor![0.0f64; ncells+1];
 
     //  uniform mesh:
     let dx = (x_right-x_left) / ncells as f64;
