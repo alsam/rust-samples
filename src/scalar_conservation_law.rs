@@ -125,18 +125,18 @@ fn do_computation(nsteps: usize, ncells: usize, tmax: f64, ifirst: usize, ilast:
 
         // right boundary condition: outgoing wave
         for ic in ncells .. lc {
-            u[ic]=u[ncells-1];
+            u[ic+2]=u[ncells+1];
         }
         // left boundary condition: specified value
         for ic in 0 .. fc {
-            u[ic]=statelft;
+            u[ic+2]=statelft;
         }
 
         // upwind fluxes times dt (ie, flux time integral over cell side)
         // assumes velocity > 0
         let vdt=velocity*dt;
         for ie in ifirst .. ilast+1 {
-            flux[ie]=vdt*u[ie-1];
+            flux[ie]=vdt*u[ie+1];
         }
 
         // conservative difference
@@ -201,7 +201,7 @@ fn main() {
     let   nsteps           = options.num_steps;
     let   ncells           = options.num_cells;
     const fc       : usize = 2;
-    let   lc               = ncells+1;
+    let   lc               = ncells+2;
     const ifirst   : usize = 1;
     let   ilast            = ncells-1;
 
