@@ -73,10 +73,12 @@ struct Options {
 
 fn min_dx(x: &[f64]) -> f64 {
     // https://doc.rust-lang.org/std/primitive.slice.html#method.windows
-    let mdx = x.windows(2) // iterator for adjacent pairs of a slice
-               .map(|w| w[1]-w[0]) // i.e. [x[0], x[1]], [x[1], x[2]] ...
-               .fold(std::f64::MAX, |x1, x2| x1.min(x2)); // `fold` to find `min`
-    mdx
+    let tdx = Tensor::new( x.windows(2) // iterator for adjacent pairs of a slice
+                            .map(|w| w[1]-w[0]) // i.e. [x[0], x[1]], [x[1], x[2]] ...
+                            .collect() );
+    // fortunately `Tensor` has `min()`
+    // `Vec` doesn't have so forced to use `fold` for it
+    tdx.min()
 }
 
 #[test]

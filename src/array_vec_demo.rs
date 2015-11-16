@@ -4,6 +4,10 @@
 extern crate num;
 use num::{Num, Zero, One, Signed, NumCast};
 
+#[macro_use(tensor)]
+extern crate numeric;
+use numeric::{Tensor, AxisIndex};
+
 use std::iter::FromIterator;
 use std::cmp::Ordering;
 use std::slice::Windows;
@@ -110,5 +114,21 @@ fn main() {
     }
 
     println!("infinity_norm : {}", infinity_norm(&delta_x));
+
+
+    let a = Tensor::new( x.windows(2) .map(|w| (w[1]-w[0])) .collect() );
+    println!("tensor a: {}",a);
+    let dx2 = a.min();
+    println!("dx2: {}", dx2);
+
+    let mut a_slice = a.slice(&[AxisIndex::Slice(1, 3)]);
+    println!("a_slice: {}", a_slice);
+    a_slice = a.slice(&[AxisIndex::Slice(2, 4)]);
+    println!("a_slice after assignment: {}", a_slice);
+    let rhs = tensor![std::f64::consts::PI; 2];
+    let mut b = a;
+    b.slice_set(&[AxisIndex::Slice(2, 4)], &rhs);
+    //b.slice_set(&[AxisIndex::Slice(2, 4)], &Tensor::fscalar(std::f64::consts::PI)); // raises RTE 'Shape not matching'
+    println!("b slice after assignment to vectorized scalar: {}", b);
 
 }

@@ -26,6 +26,9 @@ binary_unate:
 scl_test:
 	cargo test --bin scl
 
+scl_tr_test:
+	cargo test --bin scl_tr
+
 scl:
 	cargo run --bin scl -- --verbose --num_cells 10000 -b 7
 
@@ -34,4 +37,8 @@ scl_dbg:
 
 scl_rel:
 	./target/release/scl --verbose --num_cells 10000 -b 7
+
+scl_tr_rel:
+	./target/release/scl_tr --verbose --num_cells 10000 -b 7
+
 
