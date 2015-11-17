@@ -107,7 +107,8 @@ fn main() {
 
     fn infinity_norm<T: Signed+PartialOrd>(v: &[T]) -> T {
         let norm = v.iter()
-                    .map(|x| (*x).abs())
+                    .map(|x| 
+                         (*x).abs())
                     .fold( num::zero(),
                            |x1, x2| if x1 > x2 { x1 } else { x2 } );
         norm
@@ -116,7 +117,7 @@ fn main() {
     println!("infinity_norm : {}", infinity_norm(&delta_x));
 
 
-    let a = Tensor::new( x.windows(2) .map(|w| (w[1]-w[0])) .collect() );
+    let mut a = Tensor::new( x.windows(2) .map(|w| (w[1]-w[0])) .collect() );
     println!("tensor a: {}",a);
     let dx2 = a.min();
     println!("dx2: {}", dx2);
@@ -126,9 +127,14 @@ fn main() {
     a_slice = a.slice(&[AxisIndex::Slice(2, 4)]);
     println!("a_slice after assignment: {}", a_slice);
     let rhs = tensor![std::f64::consts::PI; 2];
-    let mut b = a;
+    let /* ref */ mut b = a.clone();
     b.slice_set(&[AxisIndex::Slice(2, 4)], &rhs);
     //b.slice_set(&[AxisIndex::Slice(2, 4)], &Tensor::fscalar(std::f64::consts::PI)); // raises RTE 'Shape not matching'
     println!("b slice after assignment to vectorized scalar: {}", b);
 
+    let c = a - b;
+    //let c = &tensor![1.0, 2.0, 3.0] - &tensor![4.0, 5.0, 6.0];
+    println!("c: {}",c);
+
+    let tx = Tensor::new( x );
 }
