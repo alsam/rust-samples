@@ -130,7 +130,7 @@ fn do_computation(nsteps: usize, ncells: usize, tmax: f64, ifirst: usize, ilast:
         }
         // left boundary condition: specified value
         for ic in 0 .. fc {
-            u[ic+2]=statelft;
+            u[ic]=statelft;
         }
 
         // upwind fluxes times dt (ie, flux time integral over cell side)
