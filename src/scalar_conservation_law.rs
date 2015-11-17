@@ -143,7 +143,7 @@ fn do_computation(nsteps: usize, ncells: usize, tmax: f64, ifirst: usize, ilast:
         // conservative difference
         if !fp_way {
             for ic in ifirst .. ilast {
-                u[ic] -= (flux[ic+1]-flux[ic]) / (x[ic+1]-x[ic])
+                u[ic+2] -= (flux[ic+1]-flux[ic]) / (x[ic+1]-x[ic])
             }
         } else {
             let dfdx = Vec::from_iter( flux.windows(2) 
@@ -151,7 +151,7 @@ fn do_computation(nsteps: usize, ncells: usize, tmax: f64, ifirst: usize, ilast:
                                            .map(|(f,x)|
                                             (f[1] - f[0]) / (x[1] - x[0]) ) );
             for ic in ifirst .. ilast {
-                u[ic] -= dfdx[ic];
+                u[ic+2] -= dfdx[ic];
             }
         }
 
