@@ -53,6 +53,8 @@ extern crate argparse;
 extern crate num;
 
 use num::{Num, Zero, One, Signed};
+use std::iter::FromIterator;
+use std::cmp::Ordering;
 
 use std::time::Duration;
 use std::cmp;
@@ -76,8 +78,6 @@ fn min_dx(x: &[f64]) -> f64 {
 
 #[test]
 fn test_min_dx() {
-    use std::iter::FromIterator;
-    use std::cmp::Ordering;
 
     fn sub<T: Num + Copy>(lhs: &[T], rhs: &[T]) -> Vec<T> {
         Vec::from_iter (lhs.iter().zip(rhs.iter()) .map(|(&x,&y)| x - y ) )
@@ -114,7 +114,8 @@ fn test_min_dx() {
 
 fn do_computation(nsteps: usize, ncells: usize, tmax: f64, ifirst: usize, ilast: usize,
                   statelft: f64, statergt: f64, velocity: f64, dt: f64,
-                  fc: usize, lc: usize, x: &Vec<f64>, u: &mut Vec<f64>)
+                  fc: usize, lc: usize, x: &Vec<f64>, u: &mut Vec<f64>,
+                  fp_way: bool)
 {
     let mut istep   =   0;
     let mut t       =   0.0f64;
@@ -140,8 +141,18 @@ fn do_computation(nsteps: usize, ncells: usize, tmax: f64, ifirst: usize, ilast:
         }
 
         // conservative difference
-        for ic in ifirst .. ilast {
-            u[ic] -= (flux[ic+1]-flux[ic]) / (x[ic+1]-x[ic])
+        if !fp_way {
+            for ic in ifirst .. ilast {
+                u[ic] -= (flux[ic+1]-flux[ic]) / (x[ic+1]-x[ic])
+            }
+        } else {
+            let dfdx = Vec::from_iter( flux.windows(2) 
+                                    .zip( x.windows(2) )
+                                           .map(|(f,x)|
+                                            (f[1] - f[0]) / (x[1] - x[0]) ) );
+            for ic in ifirst .. ilast {
+                u[ic] -= dfdx[ic];
+            }
         }
 
         // update time and step number
@@ -253,7 +264,7 @@ fn main() {
             }
 
             do_computation(nsteps, ncells, tmax, ifirst, ilast,
-                           statelft, statergt, velocity, dt, fc, lc, &x, &mut u);
+                           statelft, statergt, velocity, dt, fc, lc, &x, &mut u, true);
         }
     });
     println!("elapsed time: {}s.", d.as_secs() as f64 + d.subsec_nanos() as f64 / 1.0e9f64);
