@@ -136,5 +136,11 @@ fn main() {
     //let c = &tensor![1.0, 2.0, 3.0] - &tensor![4.0, 5.0, 6.0];
     println!("c: {}",c);
 
-    let tx = Tensor::new( x );
+    let tx = Tensor::new( x.clone() );
+
+    let x_slice1 = &x[ 1..2 ];
+    let x_slice2 = &x[ 2..3 ];
+
+    let diff = sub(x_slice1, x_slice2);
+    println!("x: {:?} x_slice1: {:?} x_slice2: {:?} diff: {:?}", x, x_slice1, x_slice2, diff);
 }
