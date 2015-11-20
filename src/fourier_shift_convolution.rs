@@ -19,6 +19,11 @@ fn main()
     // convolution with the kernel
     let mut b        = Vec::from_iter ((0..size) .map(|i| a[i] * kernel[i]));
 
+    // inverse Fourier transform
     b.transform(&plani);
     println!("b: {:?}", b);
+
+    // expected cyclic shift:
+    // a = [1, 2, 3, ...]
+    // b = [4, 5, 6, ...]
 }
