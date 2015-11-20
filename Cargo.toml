@@ -7,6 +7,9 @@ authors = ["Alexander Samoilov <alexander.samoilov@gmail.com>"]
 argparse = "*"
 num = "*"
 numeric = "*"
+dft = "*"
+#rustfft = "*"
+
 
 [[bin]]
 name = "array_vec_demo"
@@ -31,3 +34,7 @@ path = "src/scalar_conservation_law_tensor.rs"
 [[bin]]
 name = "binary_unate"
 path = "src/binary_unate.rs"
+
+[[bin]]
+name = "convolve"
+path = "src/fourier_shift_convolution.rs"

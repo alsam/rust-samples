@@ -41,4 +41,5 @@ scl_rel:
 scl_tr_rel:
 	./target/release/scl_tr --verbose --num_cells 10000 -b 7
 
-
+%.pdf : %.md
+	pandoc --include-in-header=fontoptions.tex -s -t beamer  -V theme:Warsaw --highlight-style pygments  --latex-engine=xelatex  $< -o $@
