@@ -5,7 +5,7 @@ use std::f64::consts::PI;
 
 fn main()
 {
-    let size: usize = 32;
+    let size: usize  = 32;
     let planf        = Plan::new(dft::Operation::Forward, size);
     let plani        = Plan::new(dft::Operation::Inverse, size);
     let mut a        = Vec::from_iter ((0..size) .map(|idx| c64::new((idx+1) as f64, 0.0)));
