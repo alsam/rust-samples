@@ -143,4 +143,9 @@ fn main() {
 
     let diff = sub(x_slice1, x_slice2);
     println!("x: {:?} x_slice1: {:?} x_slice2: {:?} diff: {:?}", x, x_slice1, x_slice2, diff);
+    let tensor_slice1 = tx.slice( &[AxisIndex::Slice(1, 2)] );
+    let tensor_slice2 = tx.slice( &[AxisIndex::Slice(2, 3)] );
+    // `Tensor` has operator overloading
+    let tensor_diff   = &tensor_slice1 - &tensor_slice2;
+    println!("x: {:?} tensor_slice1: {} tensor_slice2: {} tensor_diff: {}", x, tensor_slice1, tensor_slice2, tensor_diff);
 }
