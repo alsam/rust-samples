@@ -44,6 +44,9 @@ scl_tr_rel:
 convolve:
 	cargo run --bin convolve
 
+fft_kernels:
+	cargo run --bin fft_kernels
+
 %.pdf : %.md
 	pandoc --include-in-header=fontoptions.tex -s -t beamer  -V theme:Warsaw --highlight-style pygments  --latex-engine=xelatex  $< -o $@
 

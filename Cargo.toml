@@ -38,3 +38,7 @@ path = "src/binary_unate.rs"
 [[bin]]
 name = "convolve"
 path = "src/fourier_shift_convolution.rs"
+
+[[bin]]
+name = "fft_kernels"
+path = "src/fft_kernels.rs"
