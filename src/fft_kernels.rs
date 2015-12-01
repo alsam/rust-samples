@@ -51,6 +51,11 @@ impl Header {
 }
 
 fn read_header(namein: &str, data_path: &String) -> Header {
+    fn is_big_endian() -> bool {
+        let probe = [43u8, 21];
+        probe[0] == 21u8
+    }
+
     let name = format!("{}/{}.bin", data_path, namein);
     let mut file = File::open(name).unwrap();
     let mut buf = [0u8; 8];
@@ -73,6 +78,14 @@ fn read_header(namein: &str, data_path: &String) -> Header {
 
             (xe, ye)
         };
+
+        let grid_sz = (xe * ye) as usize;
+        let mut grid_buf = vec![0u8; grid_sz];
+        let sz = file.read(&mut grid_buf[..]).unwrap();
+        if sz != grid_sz {
+            panic!("corrupted grid sz: {} xe*ye: {}", sz, xe * ye);
+        }
+
         Header::new(endianness, xe as usize, ye as usize)
     }
 
