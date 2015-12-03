@@ -10,6 +10,7 @@ use byteorder::{ByteOrder, LittleEndian, BigEndian, NativeEndian};
 use std::process::exit;
 use argparse::{ArgumentParser, StoreTrue, Store};
 use std::f64::consts::PI;
+use std::iter::FromIterator;
 
 type c32 = num::Complex<f32>;
 
@@ -41,11 +42,28 @@ struct Header {
 }
 
 impl Header {
-    fn new(e: u8, x: usize, y: usize) -> Header {
+    fn new(e: u8, x: usize, y: usize, read_buf: &Vec<u8>) -> Header {
+        let xsize = x;
+        let ysize = y;
         Header {
             endianness: e,
             grid_size: (x, y),
-            grid: vec![vec![c32::new(0f32, 0f32); x]; y],
+            grid: Vec::from_iter((0..xsize)
+                         .map (|i|
+                  Vec::from_iter((0..ysize)
+                         .map (|j| {
+                             let start = (i*ysize+j) * 2 * mem::size_of::<f32>();
+                             let (real, imag) = if e == 0 {
+                                 (LittleEndian::read_f32(&read_buf[start + 0 .. start + 4]),
+                                  LittleEndian::read_f32(&read_buf[start + 4 .. start + 8]) )
+                                                } else {
+                                 (BigEndian::read_f32(&read_buf[start + 0 .. start + 4]),
+                                  BigEndian::read_f32(&read_buf[start + 4 .. start + 8]) )};
+                             //println!("start: {} buf slice1: {:?} slice2: {:?} real: {} imag: {}",
+                             //          start, &read_buf[start + 0 .. start + 4], &read_buf[start + 4 .. start + 8], real, imag);
+                             c32::new(real, imag)
+                          } ) ) ) ),
+
         }
     }
 }
@@ -80,13 +98,14 @@ fn read_header(namein: &str, data_path: &String) -> Header {
         };
 
         let grid_sz = (xe * ye) as usize;
-        let mut grid_buf = vec![0u8; grid_sz];
-        let sz = file.read(&mut grid_buf[..]).unwrap();
-        if sz != grid_sz {
+        let grid_elem_size = mem::size_of::<c32>();
+        let mut read_buf = Vec::new();
+        let sz = file.read(&mut read_buf).unwrap();
+        if sz != (grid_sz * grid_elem_size) {
             panic!("corrupted grid sz: {} xe*ye: {}", sz, xe * ye);
         }
 
-        Header::new(endianness, xe as usize, ye as usize)
+        Header::new(endianness, xe as usize, ye as usize, &read_buf)
     }
 
 }
