@@ -12,8 +12,10 @@ use std::iter::FromIterator;
 type c32 = num::Complex<f32>;
 type c64 = num::Complex<f64>;
 
+// [Working around the lack of associated method on parametric traits?](http://stackoverflow.com/questions/27888069/working-around-the-lack-of-associated-method-on-parametric-traits)
+
 trait ReadGrid<T> {
-    fn read(&self,
+    fn read(_unused: Option<Self>,
             little_endian: bool,
             xsize: usize,
             ysize: usize,
@@ -22,7 +24,7 @@ trait ReadGrid<T> {
 }
 
 impl ReadGrid<f32> for f32 {
-    fn read(&self,
+    fn read(_unused: Option<Self>,
             little_endian: bool,
             xsize: usize,
             ysize: usize,
@@ -43,7 +45,7 @@ impl ReadGrid<f32> for f32 {
 }
 
 impl ReadGrid<c32> for c32 {
-    fn read(&self,
+    fn read(_unused: Option<Self>,
             little_endian: bool,
             xsize: usize,
             ysize: usize,
@@ -66,7 +68,7 @@ impl ReadGrid<c32> for c32 {
 }
 
 impl ReadGrid<f64> for f64 {
-    fn read(&self,
+    fn read(_unused: Option<Self>,
             little_endian: bool,
             xsize: usize,
             ysize: usize,
@@ -87,7 +89,7 @@ impl ReadGrid<f64> for f64 {
 }
 
 impl ReadGrid<c64> for c64 {
-    fn read(&self,
+    fn read(_unused: Option<Self>,
             little_endian: bool,
             xsize: usize,
             ysize: usize,
@@ -109,6 +111,12 @@ impl ReadGrid<c64> for c64 {
     }
 }
 
+struct Grid<T> {
+    points: Vec<Vec<T>>,
+}
 
 
-fn main() {}
+
+fn main() {
+    let mut grid = ReadGrid::read(None::<f32>, true, 16, 8, &vec![0u8; 64 * 4]);
+}

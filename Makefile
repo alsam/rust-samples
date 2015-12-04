@@ -47,6 +47,9 @@ convolve:
 fft_kernels:
 	cargo run --bin fft_kernels -- --verbose  --iter 10000 --tol 1e-12
 
+generics:
+	RUST_BACKTRACE=1 cargo run --bin generics
+
 %.pdf : %.md
 	pandoc --include-in-header=fontoptions.tex -s -t beamer  -V theme:Warsaw --highlight-style pygments  --latex-engine=xelatex  $< -o $@
 
