@@ -43,3 +43,7 @@ path = "src/fourier_shift_convolution.rs"
 [[bin]]
 name = "fft_kernels"
 path = "src/fft_kernels.rs"
+
+[[bin]]
+name = "generics"
+path = "src/generics.rs"
