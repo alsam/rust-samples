@@ -8,11 +8,8 @@ use std::mem;
 use byteorder::{ByteOrder, LittleEndian, BigEndian, NativeEndian};
 use std::iter::FromIterator;
 
-
 type c32 = num::Complex<f32>;
 type c64 = num::Complex<f64>;
-
-// [Working around the lack of associated method on parametric traits?](http://stackoverflow.com/questions/27888069/working-around-the-lack-of-associated-method-on-parametric-traits)
 
 struct Grid<T> {
     points: Vec<Vec<T>>,
