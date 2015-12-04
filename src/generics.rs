@@ -19,7 +19,7 @@ struct Grid<T> {
 }
 
 impl Grid<f32> {
-    fn new() -> Grid<f32> { Grid {points: Vec::new() } }
+    fn new() -> Self { Grid {points: Vec::new() } }
     fn read(&mut self,
             little_endian: bool,
             xsize: usize,
@@ -40,6 +40,7 @@ impl Grid<f32> {
 }
 
 impl Grid<c32> {
+    fn new() -> Self { Grid {points: Vec::new() } }
     fn read(&mut self,
             little_endian: bool,
             xsize: usize,
@@ -62,6 +63,7 @@ impl Grid<c32> {
 }
 
 impl Grid<f64> {
+    fn new() -> Self { Grid {points: Vec::new() } }
     fn read(&mut self,
             little_endian: bool,
             xsize: usize,
@@ -82,6 +84,7 @@ impl Grid<f64> {
 }
 
 impl Grid<c64> {
+    fn new() -> Self { Grid {points: Vec::new() } }
     fn read(&mut self,
             little_endian: bool,
             xsize: usize,
@@ -104,6 +107,6 @@ impl Grid<c64> {
 }
 
 fn main() {
-    let mut grid: Grid<f32> = Grid::<f32>::new();
-    grid.read(true, 16, 8, &vec![0u8; 64 * 4]);
+    let mut grid = Grid::<f32>::new();
+    grid.read(true, 8, 8, &vec![0u8; 64 * 4]);
 }
