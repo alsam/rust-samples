@@ -14,23 +14,18 @@ type c64 = num::Complex<f64>;
 
 // [Working around the lack of associated method on parametric traits?](http://stackoverflow.com/questions/27888069/working-around-the-lack-of-associated-method-on-parametric-traits)
 
-trait ReadGrid<T> {
-    fn read(_unused: Option<Self>,
-            little_endian: bool,
-            xsize: usize,
-            ysize: usize,
-            grid_buf: &Vec<u8>)
-            -> Vec<Vec<T>>;
+struct Grid<T> {
+    points: Vec<Vec<T>>,
 }
 
-impl ReadGrid<f32> for f32 {
-    fn read(_unused: Option<Self>,
+impl Grid<f32> {
+    fn new() -> Grid<f32> { Grid {points: Vec::new() } }
+    fn read(&mut self,
             little_endian: bool,
             xsize: usize,
             ysize: usize,
-            grid_buf: &Vec<u8>)
-            -> Vec<Vec<f32>> {
-        Vec::from_iter((0..xsize).map(|i| {
+            grid_buf: &Vec<u8>) {
+        self.points = Vec::from_iter((0..xsize).map(|i| {
             Vec::from_iter((0..ysize).map(|j| {
                 let start = (i * ysize + j) * mem::size_of::<f32>();
                 let real = if little_endian {
@@ -44,14 +39,13 @@ impl ReadGrid<f32> for f32 {
     }
 }
 
-impl ReadGrid<c32> for c32 {
-    fn read(_unused: Option<Self>,
+impl Grid<c32> {
+    fn read(&mut self,
             little_endian: bool,
             xsize: usize,
             ysize: usize,
-            grid_buf: &Vec<u8>)
-            -> Vec<Vec<c32>> {
-        Vec::from_iter((0..xsize).map(|i| {
+            grid_buf: &Vec<u8>) {
+         self.points = Vec::from_iter((0..xsize).map(|i| {
             Vec::from_iter((0..ysize).map(|j| {
                 let start = (i * ysize + j) * 2 * mem::size_of::<f32>();
                 let (real, imag) = if little_endian {
@@ -63,18 +57,17 @@ impl ReadGrid<c32> for c32 {
                 };
                 c32::new(real, imag)
             }))
-        }))
+        }));
     }
 }
 
-impl ReadGrid<f64> for f64 {
-    fn read(_unused: Option<Self>,
+impl Grid<f64> {
+    fn read(&mut self,
             little_endian: bool,
             xsize: usize,
             ysize: usize,
-            grid_buf: &Vec<u8>)
-            -> Vec<Vec<f64>> {
-        Vec::from_iter((0..xsize).map(|i| {
+            grid_buf: &Vec<u8>) {
+         self.points = Vec::from_iter((0..xsize).map(|i| {
             Vec::from_iter((0..ysize).map(|j| {
                 let start = (i * ysize + j) * mem::size_of::<f64>();
                 let real = if little_endian {
@@ -84,18 +77,17 @@ impl ReadGrid<f64> for f64 {
                 };
                 real
             }))
-        }))
+        }));
     }
 }
 
-impl ReadGrid<c64> for c64 {
-    fn read(_unused: Option<Self>,
+impl Grid<c64> {
+    fn read(&mut self,
             little_endian: bool,
             xsize: usize,
             ysize: usize,
-            grid_buf: &Vec<u8>)
-            -> Vec<Vec<c64>> {
-        Vec::from_iter((0..xsize).map(|i| {
+            grid_buf: &Vec<u8>) {
+        self.points =  Vec::from_iter((0..xsize).map(|i| {
             Vec::from_iter((0..ysize).map(|j| {
                 let start = (i * ysize + j) * 2 * mem::size_of::<f64>();
                 let (real, imag) = if little_endian {
@@ -107,16 +99,11 @@ impl ReadGrid<c64> for c64 {
                 };
                 c64::new(real, imag)
             }))
-        }))
+        }));
     }
 }
 
-struct Grid<T> {
-    points: Vec<Vec<T>>,
-}
-
-
-
 fn main() {
-    let mut grid = ReadGrid::read(None::<f32>, true, 16, 8, &vec![0u8; 64 * 4]);
+    let mut grid: Grid<f32> = Grid::<f32>::new();
+    grid.read(true, 16, 8, &vec![0u8; 64 * 4]);
 }
