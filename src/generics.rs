@@ -26,9 +26,9 @@ impl Grid<f32> {
             Vec::from_iter((0..ysize).map(|j| {
                 let start = (i * ysize + j) * mem::size_of::<f32>();
                 let real = if little_endian {
-                    LittleEndian::read_f32(&grid_buf[start + 0..start + 4])
+                    LittleEndian::read_f32(&grid_buf[start .. ])
                 } else {
-                    BigEndian::read_f32(&grid_buf[start + 0..start + 4])
+                    BigEndian::read_f32(&grid_buf[start .. ])
                 };
                 real
             }))
@@ -45,13 +45,14 @@ impl Grid<c32> {
             grid_buf: &Vec<u8>) {
          self.points = Vec::from_iter((0..xsize).map(|i| {
             Vec::from_iter((0..ysize).map(|j| {
-                let start = (i * ysize + j) * 2 * mem::size_of::<f32>();
+                let start_1 = (i * ysize + j) * 2 * mem::size_of::<f32>();
+                let start_2 = start_1 + mem::size_of::<f32>(); // next f32 number
                 let (real, imag) = if little_endian {
-                    (LittleEndian::read_f32(&grid_buf[start + 0..start + 4]),
-                     LittleEndian::read_f32(&grid_buf[start + 4..start + 8]))
+                    (LittleEndian::read_f32(&grid_buf[start_1 .. ]),
+                     LittleEndian::read_f32(&grid_buf[start_2 .. ]))
                 } else {
-                    (BigEndian::read_f32(&grid_buf[start + 0..start + 4]),
-                     BigEndian::read_f32(&grid_buf[start + 4..start + 8]))
+                    (BigEndian::read_f32(&grid_buf[start_1 .. ]),
+                     BigEndian::read_f32(&grid_buf[start_2 .. ]))
                 };
                 c32::new(real, imag)
             }))
@@ -70,9 +71,9 @@ impl Grid<f64> {
             Vec::from_iter((0..ysize).map(|j| {
                 let start = (i * ysize + j) * mem::size_of::<f64>();
                 let real = if little_endian {
-                    LittleEndian::read_f64(&grid_buf[start + 0..start + 8])
+                    LittleEndian::read_f64(&grid_buf[start .. ])
                 } else {
-                    BigEndian::read_f64(&grid_buf[start + 0..start + 8])
+                    BigEndian::read_f64(&grid_buf[start .. ])
                 };
                 real
             }))
@@ -89,13 +90,14 @@ impl Grid<c64> {
             grid_buf: &Vec<u8>) {
         self.points =  Vec::from_iter((0..xsize).map(|i| {
             Vec::from_iter((0..ysize).map(|j| {
-                let start = (i * ysize + j) * 2 * mem::size_of::<f64>();
+                let start_1 = (i * ysize + j) * 2 * mem::size_of::<f64>();
+                let start_2 = start_1 + mem::size_of::<f64>(); // next f64 number
                 let (real, imag) = if little_endian {
-                    (LittleEndian::read_f64(&grid_buf[start + 0..start + 8]),
-                     LittleEndian::read_f64(&grid_buf[start + 8..start + 16]))
+                    (LittleEndian::read_f64(&grid_buf[start_1 .. ]),
+                     LittleEndian::read_f64(&grid_buf[start_2 .. ]))
                 } else {
-                    (BigEndian::read_f64(&grid_buf[start + 0..start + 8]),
-                     BigEndian::read_f64(&grid_buf[start + 8..start + 16]))
+                    (BigEndian::read_f64(&grid_buf[start_1 .. ]),
+                     BigEndian::read_f64(&grid_buf[start_2 .. ]))
                 };
                 c64::new(real, imag)
             }))
