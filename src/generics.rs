@@ -7,6 +7,7 @@ use std::io::Cursor;
 use std::mem;
 use byteorder::{ByteOrder, LittleEndian, BigEndian, NativeEndian};
 use std::iter::FromIterator;
+use num::Num;
 
 type c32 = num::Complex<f32>;
 type c64 = num::Complex<f64>;
@@ -27,9 +28,9 @@ struct Grid<T> {
     points: Vec<Vec<T>>,
 }
 
-impl <T> Grid<T> {
-    fn new() -> Grid<T> { panic!("not implemented for generic type"); }
-}
+//impl <T> Grid<T> {
+//    fn new() -> Grid<T> { panic!("not implemented for generic type"); }
+//}
 
 impl GridTrait<f32> for Grid<f32> {
     fn read(&mut self,
@@ -117,13 +118,34 @@ impl GridTrait<c64> for Grid<c64> {
     }
 }
 
+fn grid_dims<T>(grid: &Grid<T>) -> (usize, usize) {
+    let points = &grid.points;
+    (points.len(), points[0].len())
+}
+
+fn dump_grid<T: std::fmt::Display>(grid_name: &str, grid: &Grid<T>) {
+    println!("-I- dumping grid: {}", grid_name);
+    let points = &grid.points;
+    for i in 0 .. points.len() {
+        let row = &points[i];
+        for j in 0 .. row.len() {
+            let p = &points[i][j];
+            println!("{} [{}][{}] = {:}", grid_name, i, j, p /*.to_string()*/);
+        }
+    }
+}
+
 fn main() {
     let mut grid = Grid::<f32>::new();
-    grid.read(true, 8, 8, &vec![0u8; 64 * mem::size_of::<f32>()]);
+    grid.read(true, 8, 8, &vec![77u8; 64 * mem::size_of::<f32>()]);
 
     let mut grid1 = Grid::<c32>::new();
-    grid1.read(true, 8, 8, &vec![0u8; 64 * mem::size_of::<c32>()]);
+    grid1.read(true, 8, 8, &vec![121u8; 64 * mem::size_of::<c32>()]);
+    println!("dims for grid1: {:?}", grid_dims(&grid1));
 
-    let mut grid2 = Grid::<i32>::new();
+    //let mut grid2 = Grid::<i32>::new();
+
+    dump_grid("grid",  &grid);
+    dump_grid("grid1", &grid1);
 }
 
