@@ -10,7 +10,7 @@ numeric = "*"
 dft = "*"
 byteorder = "*"
 #rustfft = "*"
-
+arrayfire = "3.2.0"
 
 [[bin]]
 name = "array_vec_demo"
@@ -47,3 +47,7 @@ path = "src/fft_kernels.rs"
 [[bin]]
 name = "generics"
 path = "src/generics.rs"
+
+[[bin]]
+name = "af_hi"
+path = "src/af_sample.rs"

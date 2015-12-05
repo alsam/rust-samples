@@ -50,6 +50,9 @@ fft_kernels:
 generics:
 	RUST_BACKTRACE=1 cargo run --bin generics
 
+af_hi:
+	cargo run --bin af_hi
+
 %.pdf : %.md
 	pandoc --include-in-header=fontoptions.tex -s -t beamer  -V theme:Warsaw --highlight-style pygments  --latex-engine=xelatex  $< -o $@
 

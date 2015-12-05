@@ -5,6 +5,19 @@ short rust code samples
 
 ```sh
 cargo build
+
+make af_hi
+cargo run --bin af_hi
+     Running `target/debug/af_hi`
+Create a 5-by-3 matrix of random floats on the GPU
+No Name Array
+[5 3 1 1]
+    0.7402     0.4464     0.7762 
+    0.9210     0.6673     0.2948 
+    0.0390     0.1099     0.7140 
+    0.9690     0.4702     0.3585 
+    0.9251     0.5132     0.6814 
+
 cargo run --bin kernel_iterator
 
 cargo test --bin binary_unate
