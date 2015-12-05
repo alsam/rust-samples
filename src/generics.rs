@@ -27,6 +27,10 @@ struct Grid<T> {
     points: Vec<Vec<T>>,
 }
 
+impl <T> Grid<T> {
+    fn new() -> Grid<T> { panic!("not implemented for generic type"); }
+}
+
 impl GridTrait<f32> for Grid<f32> {
     fn read(&mut self,
             little_endian: bool,
@@ -119,5 +123,7 @@ fn main() {
 
     let mut grid1 = Grid::<c32>::new();
     grid1.read(true, 8, 8, &vec![0u8; 64 * mem::size_of::<c32>()]);
+
+    let mut grid2 = Grid::<i32>::new();
 }
 
