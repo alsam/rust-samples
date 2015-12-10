@@ -5,9 +5,10 @@ use std::fs::File;
 use std::io::Read;
 use std::io::Cursor;
 use std::mem;
-use byteorder::{ByteOrder, LittleEndian, BigEndian, NativeEndian};
+use byteorder::{ByteOrder, LittleEndian, BigEndian, NativeEndian, WriteBytesExt};
 use std::iter::FromIterator;
 use num::Num;
+use std::f32::consts::PI;
 
 type c32 = num::Complex<f32>;
 type c64 = num::Complex<f64>;
@@ -140,7 +141,18 @@ fn main() {
     grid.read(true, 8, 8, &vec![77u8; 64 * mem::size_of::<f32>()]);
 
     let mut grid1 = Grid::<c32>::new();
-    grid1.read(true, 8, 8, &vec![121u8; 64 * mem::size_of::<c32>()]);
+    let size = 8 * 8;
+    let cvec = Vec::from_iter( (0..size).map( |idx| {
+        c32::new( (2.0f32 * PI * 3.0f32 * (idx as f32) / (size as f32)).cos(),
+                  (2.0f32 * PI * 3.0f32 * (idx as f32) / (size as f32)).sin() ) } ) );
+    let buf_size = size * mem::size_of::<c32>();
+    let mut bvec = vec![];
+    for i in 0..size {
+        bvec.write_f32::<LittleEndian>(cvec[i].re).unwrap();
+        bvec.write_f32::<LittleEndian>(cvec[i].im).unwrap();
+
+    }
+    grid1.read(true, 8, 8, &bvec);
     println!("dims for grid1: {:?}", grid_dims(&grid1));
 
     //let mut grid2 = Grid::<i32>::new();
