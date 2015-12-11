@@ -53,6 +53,9 @@ generics:
 af_hi:
 	cargo run --bin af_hi
 
+af_fft:
+	cargo run --bin af_fft
+
 %.pdf : %.md
 	pandoc --include-in-header=fontoptions.tex -s -t beamer  -V theme:Warsaw --highlight-style pygments  --latex-engine=xelatex  $< -o $@
 

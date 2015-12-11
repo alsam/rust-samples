@@ -51,3 +51,7 @@ path = "src/generics.rs"
 [[bin]]
 name = "af_hi"
 path = "src/af_sample.rs"
+
+[[bin]]
+name = "af_fft"
+path = "src/af_fft.rs"
