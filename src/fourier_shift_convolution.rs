@@ -20,6 +20,7 @@ fn main() {
 
     // forward Fourier transform
     a.transform(&planf);
+    println!("a after fft: {:?}", a);
 
     // convolution with the kernel
     let mut b = Vec::from_iter((0..size).map(|i| a[i] * kernel[i]));
@@ -34,7 +35,7 @@ fn main() {
     // a = [1, 2, 3, ...]
     // b = [4, 5, 6, ...]
 
-    // play with ArrayFire
+    // the same with ArrayFire
     // only CPU
     set_backend(Backend::AF_BACKEND_CPU);
     let mut int_values = Vec::from_iter((0..size).map(|idx| idx + 1));
@@ -49,14 +50,15 @@ fn main() {
     println!("kernelf:");
     print(&kernelf);
 
-    let mut bf = fft_convolve1(&af, &kernelf, ConvMode::DEFAULT).unwrap();
-
-    println!("ArrayFire convolved array:");
-    print(&bf);
-
-    let af_transformed = fft(&af, 1.0, size as i64).unwrap();
-    let convolved1 = convolve1(&af_transformed, &kernelf, ConvMode::DEFAULT, ConvDomain::AUTO).unwrap();
+    let isize = size as i64;
+    let scale = 1.0f64 / (size as f64);
+    let af_transformed = fft(&af, 1.0, isize).unwrap();
+    println!("af_transformed:");
+    print(&af_transformed);
+    let convolved1 = &af_transformed * &kernelf;
     println!("convolved1:");
     print(&convolved1);
-
+    let shifted = ifft(&convolved1, scale, isize).unwrap();
+    println!("shifted:");
+    print(&shifted);
 }
