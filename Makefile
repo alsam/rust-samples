@@ -50,6 +50,9 @@ fft_kernels:
 generics:
 	RUST_BACKTRACE=1 cargo run --bin generics
 
+union:
+	RUST_BACKTRACE=1 cargo run --bin union
+
 af_hi:
 	cargo run --bin af_hi
 

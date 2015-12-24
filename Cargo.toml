@@ -55,3 +55,7 @@ path = "src/af_sample.rs"
 [[bin]]
 name = "af_fft"
 path = "src/af_fft.rs"
+
+[[bin]]
+name = "union"
+path = "src/union.rs"
