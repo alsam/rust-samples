@@ -136,12 +136,12 @@ fn do_computation(nsteps: usize, ncells: usize, tmax: f64, ifirst: usize, ilast:
     while istep < nsteps && t < tmax {
 
         // right boundary condition: outgoing wave
-        u.slice_set( &rindex, &rslice );
+        u.index_set( &rindex, &rslice );
         //for ic in ncells .. lc {
         //    u[ic]=u[ncells-1];
         //}
         // left boundary condition: specified value
-        u.slice_set( &lindex, &lslice );
+        u.index_set( &lindex, &lslice );
         //for ic in 0 .. fc {
         //    u[ic]=statelft;
         //}
