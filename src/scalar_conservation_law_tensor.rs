@@ -128,11 +128,11 @@ fn do_computation(nsteps: usize, ncells: usize, tmax: f64, ifirst: usize, ilast:
     let mut flux    =   tensor![0.0f64; x.dim(0)];
 
     // loop over timesteps
-    let rbc = u[ncells+1];
+    let rbc = u[(ncells+1,)];
     let rslice = tensor![rbc; fc];
     let lslice = tensor![statelft; fc];
-    let rindex = [AxisIndex::SliceFrom((ncells+2) as isize)];
-    let lindex = [AxisIndex::Slice(0, fc as isize)];
+    let rindex = [AxisIndex::StridedSlice(Some((ncells+2) as isize), None, 1)];
+    let lindex = [AxisIndex::StridedSlice(None, Some(fc as isize), 1)];
     while istep < nsteps && t < tmax {
 
         // right boundary condition: outgoing wave
@@ -150,12 +150,12 @@ fn do_computation(nsteps: usize, ncells: usize, tmax: f64, ifirst: usize, ilast:
         // assumes velocity > 0
         let vdt=velocity*dt;
         for ie in ifirst .. ilast+1 {
-            flux[ie]=vdt*u[ie+1];
+            flux[(ie,)]=vdt*u[(ie+1,)];
         }
 
         // conservative difference
         for ic in ifirst .. ilast {
-            u[ic+2] -= (flux[ic+1]-flux[ic]) / (x[ic+1]-x[ic])
+            u[(ic+2,)] -= (flux[(ic+1,)]-flux[(ic,)]) / (x[(ic+1,)]-x[(ic,)])
         }
 
         // update time and step number
@@ -231,7 +231,7 @@ fn main() {
     //  uniform mesh:
     let dx = (x_right-x_left) / ncells as f64;
     for ie in ifirst .. ilast+1 {
-        x[ie] = x_left + ie as f64 * dx;
+        x[(ie,)] = x_left + ie as f64 * dx;
     }
 
     // initial values for diffential equation:
@@ -254,16 +254,16 @@ fn main() {
 
             // left state to left of jump
             for ic in ifirst .. ijump-1 {
-                u[ic+2] = statelft;
+                u[(ic+2,)] = statelft;
             }
 
             // volume-weighted average in cell containing jump
             let frac = (jump-x_left-ijump as f64 *dx)/(x_right-x_left);
-            u[ijump+2] = statelft*frac+statergt*(1.0f64-frac);
+            u[(ijump+2,)] = statelft*frac+statergt*(1.0f64-frac);
 
             // right state to right of jump
             for ic in ijump+1 .. ilast {
-                u[ic+2]=statergt;
+                u[(ic+2,)]=statergt;
             }
 
             do_computation(nsteps, ncells, tmax, ifirst, ilast,

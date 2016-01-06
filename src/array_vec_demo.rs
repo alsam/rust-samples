@@ -122,13 +122,13 @@ fn main() {
     let dx2 = a.min();
     println!("dx2: {}", dx2);
 
-    let mut a_slice = a.index(&[AxisIndex::Slice(1, 3)]);
+    let mut a_slice = a.index(&[AxisIndex::StridedSlice(Some(1), Some(3), 1)]);
     println!("a_slice: {}", a_slice);
-    a_slice = a.index(&[AxisIndex::Slice(2, 4)]);
+    a_slice = a.index(&[AxisIndex::StridedSlice(Some(2), Some(4), 1)]);
     println!("a_slice after assignment: {}", a_slice);
     let rhs = tensor![std::f64::consts::PI; 2];
     let /* ref */ mut b = a.clone();
-    b.index_set(&[AxisIndex::Slice(2, 4)], &rhs);
+    b.index_set(&[AxisIndex::StridedSlice(Some(2), Some(4), 1)], &rhs);
     //b.slice_set(&[AxisIndex::Slice(2, 4)], &Tensor::fscalar(std::f64::consts::PI)); // raises RTE 'Shape not matching'
     println!("b slice after assignment to vectorized scalar: {}", b);
 
@@ -143,8 +143,8 @@ fn main() {
 
     let diff = sub(x_slice1, x_slice2);
     println!("x: {:?} x_slice1: {:?} x_slice2: {:?} diff: {:?}", x, x_slice1, x_slice2, diff);
-    let tensor_slice1 = tx.index( &[AxisIndex::Slice(1, 2)] );
-    let tensor_slice2 = tx.index( &[AxisIndex::Slice(2, 3)] );
+    let tensor_slice1 = tx.index( &[AxisIndex::StridedSlice(Some(1), Some(2), 1)] );
+    let tensor_slice2 = tx.index( &[AxisIndex::StridedSlice(Some(2), Some(3), 1)] );
     // `Tensor` has operator overloading
     let tensor_diff   = &tensor_slice1 - &tensor_slice2;
     println!("x: {:?} tensor_slice1: {} tensor_slice2: {} tensor_diff: {}", x, tensor_slice1, tensor_slice2, tensor_diff);
