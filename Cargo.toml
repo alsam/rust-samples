@@ -11,6 +11,7 @@ dft = "*"
 byteorder = "*"
 #rustfft = "*"
 arrayfire = "3.2.0"
+special-fun = "*"
 
 [[bin]]
 name = "array_vec_demo"
@@ -59,3 +60,7 @@ path = "src/af_fft.rs"
 [[bin]]
 name = "union"
 path = "src/union.rs"
+
+[[bin]]
+name = "jinc"
+path = "src/jinc.rs"
