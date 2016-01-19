@@ -12,6 +12,7 @@ byteorder = "*"
 #rustfft = "*"
 arrayfire = "3.2.0"
 special-fun = "*"
+roots = "*"
 
 [[bin]]
 name = "array_vec_demo"
