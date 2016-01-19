@@ -9,8 +9,7 @@ use roots::find_root_secant;
 
 fn jinc(r: f64) -> f64 {
     let pi2r = 2.0f64*PI*r;
-    //2.0f64*1.0f64.besselj(pi2r) / pi2r
-    2.0f64*pi2r.besselj(1.0f64) / pi2r
+    2.0f64*pi2r.besselj(1.0) / pi2r
 }
 
 fn main() {
