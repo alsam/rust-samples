@@ -1,3 +1,5 @@
+#![feature(non_ascii_idents)]
+
 extern crate num;
 
 extern crate special_fun;
@@ -8,8 +10,8 @@ use std::f64::consts::PI;
 use roots::find_root_secant;
 
 fn jinc(r: f64) -> f64 {
-    let pi2r = 2.0f64*PI*r;
-    2.0f64*pi2r.besselj(1.0) / pi2r
+    let π2r = 2.0f64*PI*r;
+    2.0f64*π2r.besselj(1.0) / π2r
 }
 
 fn main() {
