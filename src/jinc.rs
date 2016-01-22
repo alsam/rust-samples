@@ -7,11 +7,16 @@ extern crate roots;
 
 use special_fun::FloatSpecial;
 use std::f64::consts::PI;
-use roots::find_root_secant;
+use roots::SimpleConvergency;
+use roots::find_root_brent;
 
 fn jinc(r: f64) -> f64 {
     let π2r = 2.0f64*PI*r;
     2.0f64*π2r.besselj(1.0) / π2r
+}
+
+fn find_roots(a: f64, b: f64, f: &Fn(f64)->f64) -> Vec<f64> {
+    Vec::new()
 }
 
 fn main() {
