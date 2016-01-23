@@ -16,7 +16,20 @@ fn jinc(r: f64) -> f64 {
 }
 
 fn find_roots(a: f64, b: f64, f: &Fn(f64)->f64) -> Vec<f64> {
-    Vec::new()
+    let mut roots = Vec::new();
+    const RANGES : i32 = 100;
+    let dx = (b - a) / RANGES as f64;
+    let conv = SimpleConvergency{eps:1e-12f64, max_iter:80};
+    for r in 0..RANGES {
+        let beg = a + (r as f64)*dx;
+        let maybe_root = find_root_brent(beg, beg+dx, &f, &conv).ok();
+        match maybe_root {
+            Some(root) => roots.push(root),
+            None => {}
+        }
+    }
+
+    roots
 }
 
 fn main() {
@@ -24,4 +37,6 @@ fn main() {
     println!("besselj(1.0, 0.5) : {}", v);
     println!("jinc(0.61) : {}", jinc(0.609835));
 
+    let jinc_roots = find_roots(0f64, 5f64, &jinc);
+    println!("jinc roots : {:?}", jinc_roots);
 }
