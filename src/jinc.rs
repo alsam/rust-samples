@@ -23,9 +23,12 @@ fn find_roots(a: f64, b: f64, f: &Fn(f64)->f64) -> Vec<f64> {
     for r in 0..RANGES {
         let beg = a + (r as f64)*dx;
         let maybe_root = find_root_brent(beg, beg+dx, &f, &conv).ok();
-        match maybe_root {
-            Some(root) => roots.push(root),
-            None => {}
+        //match maybe_root {
+        //    Some(root) => roots.push(root),
+        //    None => {}
+        //}
+        if maybe_root.is_some() {
+            roots.push(maybe_root.unwrap());
         }
     }
 
