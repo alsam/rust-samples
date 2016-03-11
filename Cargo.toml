@@ -73,3 +73,8 @@ path = "src/jinc.rs"
 [[bin]]
 name = "adt_enum"
 path = "src/adt_enum.rs"
+
+[[bin]]
+name = "tiny"
+path = "src/tiny.rs"
+
