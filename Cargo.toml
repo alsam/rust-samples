@@ -4,6 +4,10 @@ version = "0.0.1"
 authors = ["Alexander Samoilov <alexander.samoilov@gmail.com>"]
 
 [dependencies]
+docopt = "*"
+docopt_macros = "*"
+rustc-serialize = "*"
+endianness = "*"
 argparse = "*"
 num = "*"
 numeric = "*"
@@ -65,3 +69,7 @@ path = "src/union.rs"
 [[bin]]
 name = "jinc"
 path = "src/jinc.rs"
+
+[[bin]]
+name = "adt_enum"
+path = "src/adt_enum.rs"
