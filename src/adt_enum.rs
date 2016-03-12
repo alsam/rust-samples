@@ -230,6 +230,30 @@ fn count_nnz_functional_way<T: Num>(grid: &Grid<T>) -> (usize, usize) {
     (nnz, points.len() * points[0].len())
 }
 
+// bounding box indices for the grid
+fn grid_bb_indices<T: Num>(grid: &Grid<T>) -> ((isize, isize), (isize, isize)) {
+    let points = &grid.points;
+    let ((mut llx,mut lly), (mut urx,mut ury)) =
+        ((std::isize::MAX,std::isize::MAX),
+         (std::isize::MIN,std::isize::MIN));
+    for i in 0 .. points.len() {
+        let row = &points[i];
+        for j in 0 .. row.len() {
+            let p = &points[i][j];
+            if !p.is_zero() {
+                let ii = i as isize;
+                let jj = j as isize;
+                if llx > ii { llx = ii; }
+                if lly > jj { lly = jj; }
+                if urx < ii { urx = ii; }
+                if ury < jj { ury = jj; }
+            }
+        }
+    }
+
+    ((llx,lly), (urx,ury))
+}
+
 
 fn main() {
     let args: Args = Args::docopt().decode().unwrap_or_else(|e| e.exit());
@@ -264,6 +288,10 @@ fn main() {
           let (nnz, total) = count_nnz_functional_way(&*agrid);
           println!("nnz for f32 grid: {:} total: {:} ratio: {:.3}%",
                     nnz, total, (nnz as f64 / total as f64)* 100.0);
+          let bb = grid_bb_indices(&*agrid);
+          let ((llx,lly), (urx,ury)) = bb;
+          println!("a bounding box indices for the grid mask: {:?} x_extent: {:} y_extent: {:}",
+                   bb, urx-llx, ury-lly);
         }
 
         GridVariant::Grid_c32(agrid) => dump_grid("c32_grid", &*agrid),
