@@ -1,6 +1,6 @@
 // The MIT License (MIT)
 //
-// Copyright (c) 2015 Alexander Samoilov
+// Copyright (c) 2016 Alexander Samoilov
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -204,6 +204,32 @@ fn dump_grid<T: std::fmt::Display>(grid_name: &str, grid: &Grid<T>) {
     }
 }
 
+fn count_nnz<T: Num>(grid: &Grid<T>) -> (usize, usize) {
+    let points = &grid.points;
+    let mut nnz = 0;
+    for i in 0 .. points.len() {
+        let row = &points[i];
+        for j in 0 .. row.len() {
+            let p = &points[i][j];
+            if !p.is_zero() {
+                nnz += 1;
+            }
+        }
+    }
+    (nnz, points.len() * points[0].len())
+}
+
+fn count_nnz_functional_way<T: Num>(grid: &Grid<T>) -> (usize, usize) {
+    let points = &grid.points;
+    let mut nnz = points.iter().fold(0, |sum, row| {
+        let incr = {
+            row.iter().fold(0, |c, v| if v.is_zero() {c} else {c+1} )
+        };
+        sum + incr
+    } );
+    (nnz, points.len() * points[0].len())
+}
+
 
 fn main() {
     let args: Args = Args::docopt().decode().unwrap_or_else(|e| e.exit());
@@ -233,7 +259,13 @@ fn main() {
         };
 
     match mask_grid {
-        GridVariant::Grid_f32(agrid) => dump_grid("f32_grid", &*agrid),
+        GridVariant::Grid_f32(agrid) => //dump_grid("f32_grid", &*agrid),
+        {
+          let (nnz, total) = count_nnz_functional_way(&*agrid);
+          println!("nnz for f32 grid: {:} total: {:} ratio: {:.3}%",
+                    nnz, total, (nnz as f64 / total as f64)* 100.0);
+        }
+
         GridVariant::Grid_c32(agrid) => dump_grid("c32_grid", &*agrid),
         _ => panic!("not yet implemented")
     }
