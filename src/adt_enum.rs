@@ -33,8 +33,8 @@ extern crate num;
 
 use docopt::Docopt;
 use std::io;
-use std::fs::File;
-use std::io::Read;
+use std::fs::{File, OpenOptions};
+use std::io::{Read, Write};
 use std::io::Cursor;
 use std::mem;
 use std::iter::FromIterator;
@@ -132,11 +132,12 @@ docopt!(Args derive Debug, "
 Read grid gen.
 
 Usage:
-  gridgen read <file> [--verbose] [-d <dpath>]
+  gridgen read <file> [--verbose] [-d <dpath>] [-o <asy-file-name>]
 
 Options:
   -h --help       Show this screen.
   -d --data-path  path to input data.
+  -o --out-asy    name of output asy file.
   --verbose       Be verbose.
 
 ");
@@ -254,6 +255,36 @@ fn grid_bb_indices<T: Num>(grid: &Grid<T>) -> ((isize, isize), (isize, isize)) {
     ((llx,lly), (urx,ury))
 }
 
+fn write_asy<T: Num+std::fmt::Display>(fname: &str,
+                     bounding_box: ((usize,usize), (usize,usize)),
+                     grid: &Grid<T>) -> Result<(), io::Error> {
+    const delta : usize = 10;
+    let ((llx,lly), (urx,ury)) = bounding_box;
+    let mut f = try!(File::create(fname));
+    try!(write!(f, "size({},{});\n", (urx-llx)*delta, (ury-lly)*delta));
+    try!(f.write(br#"
+void draw_grid_cell(pair lb, pair ru, pen p = defaultpen())
+{
+  path r = lb -- (ru.x, lb.y) -- ru -- (lb.x, ru.y) -- cycle;
+  filldraw(r, p);
+}
+"#));
+
+    let points = &grid.points;
+    for i in llx .. urx {
+        for j in lly .. ury {
+            let p = &points[i][j];
+            if !p.is_zero() {
+                let lb = (i    *delta, j    *delta);
+                let ru = ((i+1)*delta, (j+1)*delta);
+                try!(write!(f, "draw_grid_cell({:?}, {:?}, gray*{});\n", lb, ru, p));
+            }
+        }
+    }
+
+    Ok(())
+}
+
 
 fn main() {
     let args: Args = Args::docopt().decode().unwrap_or_else(|e| e.exit());
@@ -265,6 +296,7 @@ fn main() {
 
     let fname = args.arg_file;
     let dpath = args.arg_dpath;
+    let asy_fname = if args.arg_asy_file_name != "" { args.arg_asy_file_name } else { format!("{}.asy", fname) };
     let (byte_order, grid_type, xe, ye, grid_buf) = read_from_file(&fname, &dpath, args.flag_verbose).unwrap();
 
     let mut mask_grid =
@@ -290,8 +322,18 @@ fn main() {
                     nnz, total, (nnz as f64 / total as f64)* 100.0);
           let bb = grid_bb_indices(&*agrid);
           let ((llx,lly), (urx,ury)) = bb;
+          let (x_extent, y_extent) = (urx-llx, ury-lly);
           println!("a bounding box indices for the grid mask: {:?} x_extent: {:} y_extent: {:}",
-                   bb, urx-llx, ury-lly);
+                   bb, x_extent, y_extent);
+          let halo = 10;
+          //write_asy(&asy_fname,
+          //          ( ((llx - halo) as usize, (lly - halo) as usize),
+          //            ((urx + halo) as usize, (ury + halo) as usize) ),
+          //          &*agrid);
+          write_asy(&asy_fname,
+                    ( ( (llx - halo)         as usize, (lly - halo)         as usize),
+                      ( (llx + x_extent / 8) as usize, (lly + y_extent / 8) as usize) ),
+                    &*agrid);
         }
 
         GridVariant::Grid_c32(agrid) => dump_grid("c32_grid", &*agrid),
