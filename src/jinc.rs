@@ -4,11 +4,13 @@ extern crate num;
 
 extern crate special_fun;
 extern crate roots;
+extern crate integration;
 
 use special_fun::FloatSpecial;
 use std::f64::consts::PI;
 use roots::SimpleConvergency;
 use roots::find_root_brent;
+use integration::quadrature;
 
 fn jinc(r: f64) -> f64 {
     let π2r = 2.0f64*PI*r;
@@ -35,6 +37,10 @@ fn find_roots(a: f64, b: f64, f: &Fn(f64)->f64) -> Vec<f64> {
     roots
 }
 
+fn f(x: f64) -> f64 {
+    quadrature::gauss_legendre(&|z: f64| z.besselj(1.0), 0.0, x, 1e-12)
+}
+
 fn main() {
     let v = 0.5f64.besselj(1.0);
     println!("besselj(1.0, 0.5) : {}", v);
@@ -42,4 +48,6 @@ fn main() {
 
     let jinc_roots = find_roots(0f64, 5f64, &jinc);
     println!("jinc roots : {:?}", jinc_roots);
+    println!("f({}) = {}", 1000., f(1000.));
+    println!("f({}) = {}", 3000., f(3000.));
 }
