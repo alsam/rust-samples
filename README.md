@@ -1,6 +1,8 @@
 # rust-samples
 short rust code samples
 
+![](https://github.com/alsam/rust-samples/blob/master/images/J1_int.png "J1 integrated at [0,r] when r -> ∞")
+
 # how to run individual sample
 
 ```sh
