@@ -75,7 +75,7 @@ xaxis("r", BottomTop());
 yaxis(rotate(90)*"$\int_{z=0}^{z=\textbf{r}}J_1(z)dz$", LeftRight(), RightTicks(Label(fontsize(6pt)),
       new real[]{0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2}) );
 
-xequals(1, red+Dotted);
+yequals(1, red+Dotted);
 
 "#));
 
