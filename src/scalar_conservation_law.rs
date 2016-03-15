@@ -47,7 +47,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#![feature(duration_span)]
+//#![feature(duration_span)]
 
 extern crate argparse;
 extern crate num;
@@ -243,7 +243,8 @@ fn main() {
     let mindx = min_dx(&x);
     let dt = cfl*mindx/velocity.abs();
 
-    let d = Duration::span(||{
+    //let d = Duration::span(||{
+    let timer = std::time::Instant::now();
         for r in 0..options.num_runs {
             if options.verbose {
                 println!("run number : {}", r);
@@ -266,6 +267,8 @@ fn main() {
             do_computation(nsteps, ncells, tmax, ifirst, ilast,
                            statelft, statergt, velocity, dt, fc, lc, &x, &mut u, true);
         }
-    });
-    println!("elapsed time: {}s.", d.as_secs() as f64 + d.subsec_nanos() as f64 / 1.0e9f64);
+    //});
+    //println!("elapsed time: {:?}s.", timer.elapsed());
+    let d = timer.elapsed();
+    println!("elapsed time: {:.2}s.", d.as_secs() as f64 + d.subsec_nanos() as f64 / 1.0e9f64);
 }
