@@ -17,6 +17,7 @@ byteorder = "*"
 arrayfire = "3.2.0"
 special-fun = "*"
 roots = "*"
+integration =  { git = "https://github.com/photino/integration.git" }
 
 [[bin]]
 name = "array_vec_demo"
