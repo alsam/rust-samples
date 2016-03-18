@@ -193,6 +193,25 @@ fn read_from_file(namein: &String, data_path: &String, verbose: bool) -> Result<
     Ok((byte_order, grid_type, xe, ye, grid_buf))
 }
 
+fn read_grid(namein: &str, dpath: &String, verbose: bool) -> GridVariant {
+    let (byte_order, grid_type, xe, ye, grid_buf) = read_from_file(&namein.to_string(), &dpath, verbose).unwrap();
+    let mask_grid =
+        match grid_type {
+            GridType::f32_t => {
+                let mut f32_grid = Box::new(Grid::<f32>::new());
+                (*f32_grid).read(byte_order, xe as usize, ye as usize, &grid_buf);
+                GridVariant::Grid_f32(f32_grid)
+            },
+            GridType::c32_t => {
+                let mut c32_grid = Box::new(Grid::<c32>::new());
+                (*c32_grid).read(byte_order, xe as usize, ye as usize, &grid_buf);
+                GridVariant::Grid_c32(c32_grid)
+            },
+            _ => panic!("not yet implemented for grid type: {:?}", grid_type)
+        };
+    mask_grid
+}
+
 fn dump_grid<T: std::fmt::Display>(grid_name: &str, grid: &Grid<T>) {
     println!("-I- dumping grid: {}", grid_name);
     let points = &grid.points;
@@ -299,20 +318,7 @@ fn main() {
     let asy_fname = if args.arg_asy_file_name != "" { args.arg_asy_file_name } else { format!("{}.asy", fname) };
     let (byte_order, grid_type, xe, ye, grid_buf) = read_from_file(&fname, &dpath, args.flag_verbose).unwrap();
 
-    let mut mask_grid =
-        match grid_type {
-            GridType::f32_t => {
-                let mut f32_grid = Box::new(Grid::<f32>::new());
-                (*f32_grid).read(byte_order, xe as usize, ye as usize, &grid_buf);
-                GridVariant::Grid_f32(f32_grid)
-            },
-            GridType::c32_t => {
-                let mut c32_grid = Box::new(Grid::<c32>::new());
-                (*c32_grid).read(byte_order, xe as usize, ye as usize, &grid_buf);
-                GridVariant::Grid_c32(c32_grid)
-            },
-            _ => panic!("not yet implemented for grid type: {:?}", grid_type)
-        };
+    let mask_grid = read_grid(&fname.clone(), &dpath.clone(), args.flag_verbose);
 
     match mask_grid {
         GridVariant::Grid_f32(agrid) => //dump_grid("f32_grid", &*agrid),
