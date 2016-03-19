@@ -17,6 +17,7 @@ byteorder = "*"
 arrayfire = "3.2.0"
 special-fun = "*"
 roots = "*"
+indoc = "^0.1"
 integration =  { git = "https://github.com/photino/integration.git" }
 
 [[bin]]

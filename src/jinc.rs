@@ -1,4 +1,6 @@
+#![feature(plugin)]
 #![feature(non_ascii_idents)]
+#![plugin(indoc)]
 
 extern crate num;
 
@@ -52,36 +54,36 @@ fn definite_integral(f: &Fn(f64) -> f64, a: f64, b: f64) -> f64 {
  
 fn write_plot_asy(fname: &str, x_label: &str, y_label: &str, x: &[f64], y: &[f64]) -> Result<(), io::Error> {
     let mut f = try!(File::create(fname));
-    try!(f.write(br#"
-import graph;
-
-size(600,600,IgnoreAspect);
-
-real[] x = {"#));
+    try!(f.write(indoc!("
+                 import graph;
+                 
+                 size(600,600,IgnoreAspect);
+                 
+                 real[] x = {").as_bytes()));
 
     for x_elem in x {
         try!(write!(f, "{}, ", x_elem));
     }
 
-    try!(f.write(br#"
-};
-real[] y = {"#));
+    try!(f.write(indoc!("
+                 };
+                 real[] y = {").as_bytes()));
 
     for y_elem in y {
         try!(write!(f, "{}, ", y_elem));
     }
 
-    try!(f.write(br#"
-};
-
-draw(graph(x, y),  green, "", MarkFill[0]);
-xaxis("r", BottomTop());
-yaxis(rotate(90)*"$\int_{z=0}^{z=\textbf{r}}J_1(z)dz$", LeftRight(), RightTicks(Label(fontsize(6pt)),
-      new real[]{0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7}) );
-
-yequals(1, red+Dotted);
-
-"#));
+    try!(f.write(indoc!(r#"
+                 };
+                 
+                 draw(graph(x, y),  green, "", MarkFill[0]);
+                 xaxis("r", BottomTop());
+                 yaxis(rotate(90)*"$\int_{z=0}^{z=\textbf{r}}J_1(z)dz$", LeftRight(), RightTicks(Label(fontsize(6pt)),
+                       new real[]{0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7}) );
+                 
+                 yequals(1, red+Dotted);
+                 
+                 "#).as_bytes()));
 
     Ok(())
 

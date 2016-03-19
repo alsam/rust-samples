@@ -26,6 +26,7 @@
 #![feature(plugin)]
 #![plugin(docopt_macros)]
 #![feature(custom_derive)]
+#![plugin(indoc)]
 
 extern crate rustc_serialize;
 extern crate docopt;
@@ -281,13 +282,12 @@ fn write_asy<T: Num+std::fmt::Display>(fname: &str,
     let ((llx,lly), (urx,ury)) = bounding_box;
     let mut f = try!(File::create(fname));
     try!(write!(f, "size({},{});\n", (urx-llx)*delta, (ury-lly)*delta));
-    try!(f.write(br#"
-void draw_grid_cell(pair lb, pair ru, pen p = defaultpen())
-{
-  path r = lb -- (ru.x, lb.y) -- ru -- (lb.x, ru.y) -- cycle;
-  filldraw(r, p);
-}
-"#));
+    try!(f.write(indoc!("
+                 void draw_grid_cell(pair lb, pair ru, pen p = defaultpen())
+                 {
+                   path r = lb -- (ru.x, lb.y) -- ru -- (lb.x, ru.y) -- cycle;
+                   filldraw(r, p);
+                 }\n\n").as_bytes()));
 
     let points = &grid.points;
     for i in llx .. urx {
