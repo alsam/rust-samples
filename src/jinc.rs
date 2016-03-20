@@ -18,6 +18,8 @@ use roots::SimpleConvergency;
 use roots::find_root_brent;
 use integration::quadrature;
 
+/**
+ * Returns a @value \f$\frac{J_1(2\pi r)}{2\pi r}\f$ where \f$J_1\f$ - Bessel function of first kind. ... */
 fn jinc(r: f64) -> f64 {
     let π2r = 2.0f64*PI*r;
     2.0f64*π2r.besselj(1.0) / π2r
