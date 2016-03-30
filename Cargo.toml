@@ -80,3 +80,6 @@ path = "src/adt_enum.rs"
 name = "tiny"
 path = "src/tiny.rs"
 
+[[bin]]
+name = "naval_fate"
+path = "src/docopt_macro_use_case.rs"
