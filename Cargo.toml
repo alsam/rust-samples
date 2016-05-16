@@ -11,6 +11,8 @@ endianness = "*"
 argparse = "*"
 num = "*"
 numeric = "*"
+num-traits = "*"
+ndarray = "*"
 dft = "*"
 byteorder = "*"
 #rustfft = "*"
@@ -83,3 +85,7 @@ path = "src/tiny.rs"
 [[bin]]
 name = "naval_fate"
 path = "src/docopt_macro_use_case.rs"
+
+[[bin]]
+name = "ndarray_demo"
+path = "src/ndarray_demo.rs"
