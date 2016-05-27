@@ -18,6 +18,7 @@ byteorder = "*"
 #rustfft = "*"
 arrayfire = "3.2.0"
 special-fun = "*"
+simd = "*"
 roots = "*"
 indoc = "^0.1"
 integration =  { git = "https://github.com/photino/integration.git" }
@@ -89,3 +90,11 @@ path = "src/docopt_macro_use_case.rs"
 [[bin]]
 name = "ndarray_demo"
 path = "src/ndarray_demo.rs"
+
+[[bin]]
+name = "nbody"
+path = "src/nbody.rs"
+
+[[bin]]
+name = "nbody_simd"
+path = "src/nbody_simd.rs"

@@ -68,6 +68,10 @@ tiny:
 ndarray:
 	cargo run --bin ndarray_demo
 
+simd:
+	time cargo run --bin nbody 10000000
+	time cargo run --bin nbody_simd 10000000
+
 
 %.pdf : %.md
 	pandoc --include-in-header=fontoptions.tex -s -t beamer  -V theme:Warsaw --highlight-style pygments  --latex-engine=xelatex  $< -o $@
