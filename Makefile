@@ -69,8 +69,11 @@ ndarray:
 	cargo run --bin ndarray_demo
 
 simd:
-	time cargo run --bin nbody 10000000
-	time cargo run --bin nbody_simd 10000000
+	time cargo run --release --bin nbody 100000000
+	time cargo run --release --bin nbody_simd 100000000
+
+add_sum_sq:
+	cargo run --release --bin add_sum_sq data/add_sum_sq/sum_ef_20085.bin
 
 
 %.pdf : %.md

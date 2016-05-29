@@ -98,3 +98,7 @@ path = "src/nbody.rs"
 [[bin]]
 name = "nbody_simd"
 path = "src/nbody_simd.rs"
+
+[[bin]]
+name = "add_sum_sq"
+path = "src/add_sum_sq.rs"
