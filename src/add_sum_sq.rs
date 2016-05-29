@@ -22,7 +22,7 @@ fn kernel1(ai: &mut Vec<f32>, ef: &Vec<c32>) {
 fn kernel2(ai: &mut Vec<f32>, ef_re: &Vec<f32>, ef_im: &Vec<f32>) {
     let size = ai.len();
     for i in 0..size {
-        ai[i] += ef_re[i]*ef_re[i] + ef_im[i]*ef_im[i];
+        ai[i] += ef_re[i].powi(2) + ef_im[i].powi(2);
     }
 }
 
