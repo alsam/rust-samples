@@ -26,6 +26,12 @@ fn kernel2(ai: &mut Vec<f32>, ef_re: &Vec<f32>, ef_im: &Vec<f32>) {
     }
 }
 
+fn kernel3(ai: &mut Vec<f32>, ef: &Vec<f32>) {
+    let size = ai.len();
+    for i in 0..size {
+        ai[i] += ef[2*i].powi(2) + ef[2*i+1].powi(2);
+    }
+}
 
 fn main() {
     let arg = env::args_os().nth(1).expect("Please, provide a file as argument");
@@ -60,6 +66,10 @@ fn main() {
 
     let ef_re = Vec::from_iter((0..size).map(|i| ef[i].re));
     let ef_im = Vec::from_iter((0..size).map(|i| ef[i].im));
+    let ef_as_f32 = Vec::from_iter((0..2*size).map(|i| {
+                let j = i/2;
+                if i%2 == 0 {ef[j].re} else {ef[j].im}
+            }));
 
     let rep_count = 10000;
     let mut timer = std::time::Instant::now();
@@ -79,6 +89,16 @@ fn main() {
 
     let d = timer.elapsed();
     println!("elapsed time for kernel2: {:.7}s.", d.as_secs() as f64 + d.subsec_nanos() as f64 / 1.0e9f64);
+
+    timer = std::time::Instant::now();
+
+    for i in 0..rep_count {
+      kernel3(&mut ai, &ef_as_f32);
+    }
+
+    let d = timer.elapsed();
+    println!("elapsed time for kernel3: {:.7}s.", d.as_secs() as f64 + d.subsec_nanos() as f64 / 1.0e9f64);
+
 
     println!("fini");
 }
