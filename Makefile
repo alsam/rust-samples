@@ -2,6 +2,9 @@
 #  Makefile for running rust samples
 #
 
+CC = gcc
+CFLAGS = -O5 -Wall
+
 build:
 	cargo build
 
@@ -72,7 +75,10 @@ simd:
 	time cargo run --release --bin nbody 100000000
 	time cargo run --release --bin nbody_simd 100000000
 
-add_sum_sq:
+ckernels:
+	$(CC) $(CFLAGS) -shared src/ckernels.c -o target/release/libckernels.so
+
+add_sum_sq: ckernels
 	cargo run --release --bin add_sum_sq data/add_sum_sq/sum_ef_20085.bin
 
 

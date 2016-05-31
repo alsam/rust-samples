@@ -1,5 +1,6 @@
 extern crate num;
 extern crate byteorder;
+extern crate libc;
 
 use std::env;
 use std::fs::File;
@@ -9,6 +10,9 @@ use std::mem;
 use std::iter::FromIterator;
 use byteorder::{ByteOrder, LittleEndian, BigEndian, NativeEndian};
 use std::time::Duration;
+
+use libc::{c_int, size_t};
+use std::vec;
 
 type c32 = num::Complex<f32>;
 
@@ -31,6 +35,12 @@ fn kernel3(ai: &mut Vec<f32>, ef: &Vec<f32>) {
     for i in 0..size {
         ai[i] += ef[2*i].powi(2) + ef[2*i+1].powi(2);
     }
+}
+
+// now play with kernel written in C/C++
+#[link(name = "ckernels")]
+extern "C" {
+    fn kernel4(L: c_int, ai: *mut f32, ef: *const f32);
 }
 
 fn main() {
@@ -75,7 +85,7 @@ fn main() {
     let mut timer = std::time::Instant::now();
 
     for i in 0..rep_count {
-      kernel1(&mut ai, &ef);
+        kernel1(&mut ai, &ef);
     }
 
     let d = timer.elapsed();
@@ -84,7 +94,7 @@ fn main() {
     timer = std::time::Instant::now();
 
     for i in 0..rep_count {
-      kernel2(&mut ai, &ef_re, &ef_im);
+        kernel2(&mut ai, &ef_re, &ef_im);
     }
 
     let d = timer.elapsed();
@@ -93,11 +103,27 @@ fn main() {
     timer = std::time::Instant::now();
 
     for i in 0..rep_count {
-      kernel3(&mut ai, &ef_as_f32);
+        kernel3(&mut ai, &ef_as_f32);
     }
 
     let d = timer.elapsed();
     println!("elapsed time for kernel3: {:.7}s.", d.as_secs() as f64 + d.subsec_nanos() as f64 / 1.0e9f64);
+
+    timer = std::time::Instant::now();
+
+    let len = size as c_int;
+    let pai = ai.as_mut_ptr();
+    let pef = ef_as_f32.as_ptr();
+
+    for i in 0..rep_count {
+        unsafe {
+            kernel4(len, pai, pef);
+        }
+    }
+
+    let d = timer.elapsed();
+    println!("elapsed time for kernel4: {:.7}s.", d.as_secs() as f64 + d.subsec_nanos() as f64 / 1.0e9f64);
+
 
 
     println!("fini");

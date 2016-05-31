@@ -4,6 +4,7 @@ version = "0.0.1"
 authors = ["Alexander Samoilov <alexander.samoilov@gmail.com>"]
 
 [dependencies]
+libc = "*"
 docopt = "*"
 docopt_macros = "*"
 rustc-serialize = "*"
