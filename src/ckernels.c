@@ -12,3 +12,10 @@ void kernel4(int L, float* ai, float* ef) {
     *p1++ += mag;
   } 
 }
+
+void kernel5(int L, float* ai, float* ef) {
+  int i;
+  for(i = 0; i < L; i++) {
+    ai[i] += (double)ef[2*i] * (double)ef[2*i] + (double)ef[2*i+1] * (double)ef[2*i+1];
+  } 
+}

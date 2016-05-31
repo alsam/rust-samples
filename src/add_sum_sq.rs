@@ -41,6 +41,7 @@ fn kernel3(ai: &mut Vec<f32>, ef: &Vec<f32>) {
 #[link(name = "ckernels")]
 extern "C" {
     fn kernel4(L: c_int, ai: *mut f32, ef: *const f32);
+    fn kernel5(L: c_int, ai: *mut f32, ef: *const f32);
 }
 
 fn main() {
@@ -109,11 +110,12 @@ fn main() {
     let d = timer.elapsed();
     println!("elapsed time for kernel3: {:.7}s.", d.as_secs() as f64 + d.subsec_nanos() as f64 / 1.0e9f64);
 
-    timer = std::time::Instant::now();
 
     let len = size as c_int;
     let pai = ai.as_mut_ptr();
     let pef = ef_as_f32.as_ptr();
+ 
+    timer = std::time::Instant::now();
 
     for i in 0..rep_count {
         unsafe {
@@ -124,6 +126,16 @@ fn main() {
     let d = timer.elapsed();
     println!("elapsed time for kernel4: {:.7}s.", d.as_secs() as f64 + d.subsec_nanos() as f64 / 1.0e9f64);
 
+    timer = std::time::Instant::now();
+
+    for i in 0..rep_count {
+        unsafe {
+            kernel5(len, pai, pef);
+        }
+    }
+
+    let d = timer.elapsed();
+    println!("elapsed time for kernel5: {:.7}s.", d.as_secs() as f64 + d.subsec_nanos() as f64 / 1.0e9f64);
 
 
     println!("fini");
