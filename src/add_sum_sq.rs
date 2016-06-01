@@ -1,6 +1,7 @@
 extern crate num;
 extern crate byteorder;
 extern crate libc;
+extern crate argparse;
 
 use std::env;
 use std::fs::File;
@@ -10,6 +11,8 @@ use std::mem;
 use std::iter::FromIterator;
 use byteorder::{ByteOrder, LittleEndian, BigEndian, NativeEndian};
 use std::time::Duration;
+use argparse::{ArgumentParser, StoreTrue, Store};
+use std::process::exit;
 
 use libc::{c_int, size_t};
 use std::vec;
@@ -61,14 +64,59 @@ extern "C" {
     fn kernel5(L: c_int, ai: *mut f32, ef: *const f32);
 }
 
+struct Options {
+    verbose: bool,
+    name: String,
+    rep_count: usize,
+    kernel_num: isize,
+}
+
 fn main() {
-    let arg = env::args_os().nth(1).expect("Please, provide a file as argument");
-    let mut file = File::open(&arg).ok().expect(&format!("The file {:?} does not exist", arg));
+    //let arg = "./data/add_sum_sq/sum_ef_20077.bin";
+    //let mut file = File::open(&arg).ok().expect(&format!("The file {:?} does not exist", arg));
+
+    let mut options = Options {
+        verbose:   false,
+        name:      "./data/add_sum_sq/sum_ef_20077.bin".to_string(),
+        rep_count: 10000,
+        kernel_num: -1,
+    };
+
+    {
+        let mut ap = ArgumentParser::new();
+        ap.set_description("Time elapsing for add_sum_sq kernels.");
+        ap.refer(&mut options.verbose)
+            .add_option(&["-v", "--verbose"], StoreTrue,
+            "set verbose");
+        ap.refer(&mut options.name)
+            .add_option(&["-i", "--input"], Store,
+            "set name of input file");
+        ap.refer(&mut options.rep_count)
+            .add_option(&["-n", "--num_iters"], Store,
+            "set number of iterations");
+        ap.refer(&mut options.kernel_num)
+            .add_option(&["-k", "--num_kernel"], Store,
+            "set number of kernel");
+        match ap.parse_args() {
+            Ok(()) => {}
+            Err(x) => {
+                exit(x);
+            }
+        }
+    }
+
+    if options.verbose {
+        println!("input file name : {} number of iterations : {} kernel number : {}",
+                 options.name, options.rep_count, options.kernel_num);
+    }
+
+    let mut file = File::open(&options.name).ok().expect(&format!("The file {:?} does not exist", &options.name));
     let file_info = file.metadata().ok().expect("Cannot get file metadata");
     if !file_info.is_file() {
-        panic!("{:?} is not a file", arg);
+        panic!("{:?} is not a file", &options.name);
     }
-    println!("the file {:?} has length {} bytes", arg, file_info.len());
+    println!("the file {:?} has length {} bytes", &options.name, file_info.len());
+
     let mut buf = [0u8; 4];
     file.read(&mut buf[..]);
     let L = LittleEndian::read_u32(&buf[..]);
@@ -99,52 +147,67 @@ fn main() {
                 if i%2 == 0 {ef[j].re} else {ef[j].im}
             }));
 
-    let rep_count = 10000;
-    let mut timer = timer_start!();
+    let rep_count = options.rep_count;
 
-    for i in 0..rep_count {
-        kernel1(&mut ai, &ef);
-    }
-
-    timer_stop!(timer, "kernel1");
-    timer = timer_start!();
-
-    for i in 0..rep_count {
-        kernel2(&mut ai, &ef_re, &ef_im);
-    }
-
-    timer_stop!(timer, "kernel2");
-    timer = timer_start!();
-
-    for i in 0..rep_count {
-        kernel3(&mut ai, &ef_as_f32);
-    }
-
-    timer_stop!(timer, "kernel3");
-
-
-    let len = size as c_int;
-    let pai = ai.as_mut_ptr();
-    let pef = ef_as_f32.as_ptr();
- 
-    timer = timer_start!();
-
-    for i in 0..rep_count {
-        unsafe {
-            kernel4(len, pai, pef);
+    if options.kernel_num == 1 || options.kernel_num == -1 {
+        let timer = timer_start!();
+  
+        for i in 0..rep_count {
+            kernel1(&mut ai, &ef);
         }
+  
+        timer_stop!(timer, "kernel1");
     }
 
-    timer_stop!(timer, "kernel4");
-    timer = timer_start!();
+    if options.kernel_num == 2 || options.kernel_num == -1 {
+        let timer = timer_start!();
 
-    for i in 0..rep_count {
-        unsafe {
-            kernel5(len, pai, pef);
+        for i in 0..rep_count {
+            kernel2(&mut ai, &ef_re, &ef_im);
         }
+
+        timer_stop!(timer, "kernel2");
     }
 
-    timer_stop!(timer, "kernel5");
+    if options.kernel_num == 3 || options.kernel_num == -1 {
+        let timer = timer_start!();
+
+        for i in 0..rep_count {
+            kernel3(&mut ai, &ef_as_f32);
+        }
+
+        timer_stop!(timer, "kernel3");
+    }
+
+    if options.kernel_num == 4 || options.kernel_num == -1 {
+        let len = size as c_int;
+        let pai = ai.as_mut_ptr();
+        let pef = ef_as_f32.as_ptr();
+        let timer = timer_start!();
+    
+        for i in 0..rep_count {
+            unsafe {
+                kernel4(len, pai, pef);
+            }
+        }
+    
+        timer_stop!(timer, "kernel4");
+    }
+
+    if options.kernel_num == 5 || options.kernel_num == -1 {
+        let len = size as c_int;
+        let pai = ai.as_mut_ptr();
+        let pef = ef_as_f32.as_ptr();
+        let timer = timer_start!();
+
+        for i in 0..rep_count {
+            unsafe {
+                kernel5(len, pai, pef);
+            }
+        }
+
+        timer_stop!(timer, "kernel5");
+    }
 
 
     println!("fini");

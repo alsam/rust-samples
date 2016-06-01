@@ -5,7 +5,7 @@
 CC = gcc
 CFLAGS = -O5 -Wall
 
-build:
+build: ckernels
 	cargo build
 
 release: ckernels
@@ -76,10 +76,14 @@ simd:
 	time cargo run --release --bin nbody_simd 100000000
 
 ckernels:
+	$(CC) $(CFLAGS) -g -shared src/ckernels.c -o target/debug/libckernels.so
 	$(CC) $(CFLAGS) -shared src/ckernels.c -o target/release/libckernels.so
 
 add_sum_sq: ckernels
-	cargo run --release --bin add_sum_sq data/add_sum_sq/sum_ef_20085.bin
+	cargo run --release --bin add_sum_sq -- -v -i data/add_sum_sq/sum_ef_20085.bin
+
+add_sum_sq_profile: ckernels
+	cargo profiler cachegrind --bin ./target/debug/add_sum_sq -- -k 1 -i `pwd`/data/add_sum_sq/sum_ef_20085.bin
 
 
 %.pdf : %.md
