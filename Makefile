@@ -8,7 +8,7 @@ CFLAGS = -O5 -Wall
 build:
 	cargo build
 
-release:
+release: ckernels
 	cargo build --release
 
 array_vec:
