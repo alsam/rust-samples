@@ -16,6 +16,23 @@ use std::vec;
 
 type c32 = num::Complex<f32>;
 
+
+macro_rules! timer_start {
+    () => {
+        {
+            let timer = std::time::Instant::now();
+            timer
+        }
+    }
+}
+
+macro_rules! timer_stop {
+    ($timer:expr, $name:expr) => {
+        let d = ($timer).elapsed();
+        println!("elapsed time for {}: {:.7}s.", $name, d.as_secs() as f64 + d.subsec_nanos() as f64 / 1.0e9f64);
+    }
+}
+
 fn kernel1(ai: &mut Vec<f32>, ef: &Vec<c32>) {
     let size = ai.len();
     for i in 0..size {
@@ -37,7 +54,7 @@ fn kernel3(ai: &mut Vec<f32>, ef: &Vec<f32>) {
     }
 }
 
-// now play with kernel written in C/C++
+// now play with kernels written in C/C++
 #[link(name = "ckernels")]
 extern "C" {
     fn kernel4(L: c_int, ai: *mut f32, ef: *const f32);
@@ -83,39 +100,34 @@ fn main() {
             }));
 
     let rep_count = 10000;
-    let mut timer = std::time::Instant::now();
+    let mut timer = timer_start!();
 
     for i in 0..rep_count {
         kernel1(&mut ai, &ef);
     }
 
-    let d = timer.elapsed();
-    println!("elapsed time for kernel1: {:.7}s.", d.as_secs() as f64 + d.subsec_nanos() as f64 / 1.0e9f64);
-
-    timer = std::time::Instant::now();
+    timer_stop!(timer, "kernel1");
+    timer = timer_start!();
 
     for i in 0..rep_count {
         kernel2(&mut ai, &ef_re, &ef_im);
     }
 
-    let d = timer.elapsed();
-    println!("elapsed time for kernel2: {:.7}s.", d.as_secs() as f64 + d.subsec_nanos() as f64 / 1.0e9f64);
-
-    timer = std::time::Instant::now();
+    timer_stop!(timer, "kernel2");
+    timer = timer_start!();
 
     for i in 0..rep_count {
         kernel3(&mut ai, &ef_as_f32);
     }
 
-    let d = timer.elapsed();
-    println!("elapsed time for kernel3: {:.7}s.", d.as_secs() as f64 + d.subsec_nanos() as f64 / 1.0e9f64);
+    timer_stop!(timer, "kernel3");
 
 
     let len = size as c_int;
     let pai = ai.as_mut_ptr();
     let pef = ef_as_f32.as_ptr();
  
-    timer = std::time::Instant::now();
+    timer = timer_start!();
 
     for i in 0..rep_count {
         unsafe {
@@ -123,10 +135,8 @@ fn main() {
         }
     }
 
-    let d = timer.elapsed();
-    println!("elapsed time for kernel4: {:.7}s.", d.as_secs() as f64 + d.subsec_nanos() as f64 / 1.0e9f64);
-
-    timer = std::time::Instant::now();
+    timer_stop!(timer, "kernel4");
+    timer = timer_start!();
 
     for i in 0..rep_count {
         unsafe {
@@ -134,8 +144,7 @@ fn main() {
         }
     }
 
-    let d = timer.elapsed();
-    println!("elapsed time for kernel5: {:.7}s.", d.as_secs() as f64 + d.subsec_nanos() as f64 / 1.0e9f64);
+    timer_stop!(timer, "kernel5");
 
 
     println!("fini");
