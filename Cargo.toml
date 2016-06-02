@@ -5,6 +5,7 @@ authors = ["Alexander Samoilov <alexander.samoilov@gmail.com>"]
 
 [dependencies]
 libc = "*"
+rand = "*"
 docopt = "*"
 docopt_macros = "*"
 rustc-serialize = "*"

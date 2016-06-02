@@ -1,8 +1,12 @@
+#![feature(test)]
+extern crate test;
+
 extern crate num;
 extern crate byteorder;
 extern crate libc;
 extern crate argparse;
 
+use test::Bencher;
 use std::env;
 use std::fs::File;
 use std::io::{Read, Write};
@@ -71,10 +75,7 @@ struct Options {
     kernel_num: isize,
 }
 
-fn main() {
-    //let arg = "./data/add_sum_sq/sum_ef_20077.bin";
-    //let mut file = File::open(&arg).ok().expect(&format!("The file {:?} does not exist", arg));
-
+fn cook_input_data() -> (Options, Vec<f32>, Vec<c32>) {
     let mut options = Options {
         verbose:   false,
         name:      "./data/add_sum_sq/sum_ef_20077.bin".to_string(),
@@ -124,7 +125,7 @@ fn main() {
     let size = L as usize;
     let mut grid_buf = Vec::new();
     let sz = file.read_to_end(&mut grid_buf).unwrap();
-    let mut ai = Vec::from_iter((0..size).map(|i| {
+    let ai = Vec::from_iter((0..size).map(|i| {
                 let start = i * mem::size_of::<f32>();
                 let val = LittleEndian::read_f32(&grid_buf[start .. ]);
                 //println!("val : {}",val);
@@ -139,20 +140,33 @@ fn main() {
                 c32::new(val_real, val_imag)
             }));
 
+    (options, ai, ef)
+}
 
+fn ef_views(ef: &Vec<c32>) -> (Vec<f32>, Vec<f32>, Vec<f32>) {
+    let size = ef.len();
     let ef_re = Vec::from_iter((0..size).map(|i| ef[i].re));
     let ef_im = Vec::from_iter((0..size).map(|i| ef[i].im));
     let ef_as_f32 = Vec::from_iter((0..2*size).map(|i| {
                 let j = i/2;
                 if i%2 == 0 {ef[j].re} else {ef[j].im}
             }));
+    (ef_re, ef_im, ef_as_f32)
+}
+
+fn main() {
+
+    let (options, mut ai, ef) = cook_input_data();
+    let size = ai.len();
+
+    let (ef_re, ef_im, ef_as_f32) = ef_views(&ef);
 
     let rep_count = options.rep_count;
 
     if options.kernel_num == 1 || options.kernel_num == -1 {
         let timer = timer_start!();
   
-        for i in 0..rep_count {
+        for _ in 0..rep_count {
             kernel1(&mut ai, &ef);
         }
   
@@ -162,7 +176,7 @@ fn main() {
     if options.kernel_num == 2 || options.kernel_num == -1 {
         let timer = timer_start!();
 
-        for i in 0..rep_count {
+        for _ in 0..rep_count {
             kernel2(&mut ai, &ef_re, &ef_im);
         }
 
@@ -172,7 +186,7 @@ fn main() {
     if options.kernel_num == 3 || options.kernel_num == -1 {
         let timer = timer_start!();
 
-        for i in 0..rep_count {
+        for _ in 0..rep_count {
             kernel3(&mut ai, &ef_as_f32);
         }
 
@@ -185,7 +199,7 @@ fn main() {
         let pef = ef_as_f32.as_ptr();
         let timer = timer_start!();
     
-        for i in 0..rep_count {
+        for _ in 0..rep_count {
             unsafe {
                 kernel4(len, pai, pef);
             }
@@ -200,7 +214,7 @@ fn main() {
         let pef = ef_as_f32.as_ptr();
         let timer = timer_start!();
 
-        for i in 0..rep_count {
+        for _ in 0..rep_count {
             unsafe {
                 kernel5(len, pai, pef);
             }
@@ -212,3 +226,23 @@ fn main() {
 
     println!("fini");
 }
+
+
+#[bench]
+fn setup_kernel4(b: &mut Bencher) {
+    let (options, mut ai, ef) = cook_input_data();
+    let size = ai.len();
+
+    let (ef_re, ef_im, ef_as_f32) = ef_views(&ef);
+
+    let len = size as c_int;
+    let pai = ai.as_mut_ptr();
+    let pef = ef_as_f32.as_ptr();
+
+    b.iter(|| {
+        unsafe {
+            kernel4(len, pai, pef);
+        }
+    } )
+}
+
