@@ -3,7 +3,7 @@
 #
 
 CC = gcc
-CFLAGS = -O5 -Wall
+CFLAGS = -O3 -fomit-frame-pointer -march=native -mfpmath=sse -msse3 -Wall
 
 build: ckernels
 	cargo build
@@ -85,6 +85,9 @@ add_sum_sq: ckernels
 add_sum_sq_profile: ckernels
 	cargo profiler cachegrind --bin ./target/debug/add_sum_sq -- -k 1 -i `pwd`/data/add_sum_sq/sum_ef_20085.bin
 
+add_sum_sq_operf: ckernels
+	operf ./target/debug/add_sum_sq -k 4 -n 100
+	opannotate --source --assembly > operf.listing
 
 %.pdf : %.md
 	pandoc --include-in-header=fontoptions.tex -s -t beamer  -V theme:Warsaw --highlight-style pygments  --latex-engine=xelatex  $< -o $@
