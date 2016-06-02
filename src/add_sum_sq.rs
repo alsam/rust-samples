@@ -75,7 +75,7 @@ struct Options {
     kernel_num: isize,
 }
 
-fn cook_input_data() -> (Options, Vec<f32>, Vec<c32>) {
+fn cook_input_data(parse_options: bool) -> (Options, Vec<f32>, Vec<c32>) {
     let mut options = Options {
         verbose:   false,
         name:      "./data/add_sum_sq/sum_ef_20077.bin".to_string(),
@@ -83,7 +83,7 @@ fn cook_input_data() -> (Options, Vec<f32>, Vec<c32>) {
         kernel_num: -1,
     };
 
-    {
+    if parse_options {
         let mut ap = ArgumentParser::new();
         ap.set_description("Time elapsing for add_sum_sq kernels.");
         ap.refer(&mut options.verbose)
@@ -101,8 +101,7 @@ fn cook_input_data() -> (Options, Vec<f32>, Vec<c32>) {
         match ap.parse_args() {
             Ok(()) => {}
             Err(x) => {
-                //exit(x);
-                //println!("unlnown option: {}",x);
+                exit(x);
             }
         }
     }
@@ -117,12 +116,19 @@ fn cook_input_data() -> (Options, Vec<f32>, Vec<c32>) {
     if !file_info.is_file() {
         panic!("{:?} is not a file", &options.name);
     }
-    println!("the file {:?} has length {} bytes", &options.name, file_info.len());
+
+    if parse_options {
+        println!("the file {:?} has length {} bytes", &options.name, file_info.len());
+    }
 
     let mut buf = [0u8; 4];
     file.read(&mut buf[..]);
     let L = LittleEndian::read_u32(&buf[..]);
-    println!("L : {}", L);
+
+    if parse_options {
+        println!("L : {}", L);
+    }
+
     let size = L as usize;
     let mut grid_buf = Vec::new();
     let sz = file.read_to_end(&mut grid_buf).unwrap();
@@ -157,7 +163,7 @@ fn ef_views(ef: &Vec<c32>) -> (Vec<f32>, Vec<f32>, Vec<f32>) {
 
 fn main() {
 
-    let (options, mut ai, ef) = cook_input_data();
+    let (options, mut ai, ef) = cook_input_data(true);
     let size = ai.len();
 
     let (ef_re, ef_im, ef_as_f32) = ef_views(&ef);
@@ -229,8 +235,37 @@ fn main() {
 
 
 #[bench]
+fn setup_kernel1(b: &mut Bencher) {
+    let (_, mut ai, ef) = cook_input_data(false);
+
+    b.iter(|| {
+        kernel1(&mut ai, &ef);
+    } )
+}
+
+#[bench]
+fn setup_kernel2(b: &mut Bencher) {
+    let (_, mut ai, ef) = cook_input_data(false);
+    let (ef_re, ef_im, _) = ef_views(&ef);
+
+    b.iter(|| {
+        kernel2(&mut ai, &ef_re, &ef_im);
+    } )
+}
+
+#[bench]
+fn setup_kernel3(b: &mut Bencher) {
+    let (_, mut ai, ef) = cook_input_data(false);
+    let (_, _, ef_as_f32) = ef_views(&ef);
+
+    b.iter(|| {
+        kernel3(&mut ai, &ef_as_f32);
+    } )
+}
+
+#[bench]
 fn setup_kernel4(b: &mut Bencher) {
-    let (_, mut ai, ef) = cook_input_data();
+    let (_, mut ai, ef) = cook_input_data(false);
     let size = ai.len();
 
     let (ef_re, ef_im, ef_as_f32) = ef_views(&ef);
@@ -245,4 +280,24 @@ fn setup_kernel4(b: &mut Bencher) {
         }
     } )
 }
+
+#[bench]
+fn setup_kernel5(b: &mut Bencher) {
+    let (_, mut ai, ef) = cook_input_data(false);
+    let size = ai.len();
+
+    let (ef_re, ef_im, ef_as_f32) = ef_views(&ef);
+
+    let len = size as c_int;
+    let pai = ai.as_mut_ptr();
+    let pef = ef_as_f32.as_ptr();
+
+    b.iter(|| {
+        unsafe {
+            kernel5(len, pai, pef);
+        }
+    } )
+}
+
+
 
