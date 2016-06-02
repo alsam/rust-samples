@@ -66,6 +66,7 @@ fn kernel3(ai: &mut Vec<f32>, ef: &Vec<f32>) {
 extern "C" {
     fn kernel4(L: c_int, ai: *mut f32, ef: *const f32);
     fn kernel5(L: c_int, ai: *mut f32, ef: *const f32);
+    fn kernel6(L: c_int, ai: *mut f32, ef: *const f32);
 }
 
 struct Options {
@@ -78,7 +79,8 @@ struct Options {
 fn cook_input_data(parse_options: bool) -> (Options, Vec<f32>, Vec<c32>) {
     let mut options = Options {
         verbose:   false,
-        name:      "./data/add_sum_sq/sum_ef_20077.bin".to_string(),
+        //name:      "./data/add_sum_sq/sum_ef_20077.bin".to_string(),
+        name:      "./data/add_sum_sq/sum_ef_20085.bin".to_string(),
         rep_count: 10000,
         kernel_num: -1,
     };
@@ -299,5 +301,22 @@ fn setup_kernel5(b: &mut Bencher) {
     } )
 }
 
+#[bench]
+fn setup_kernel6(b: &mut Bencher) {
+    let (_, mut ai, ef) = cook_input_data(false);
+    let size = ai.len();
+
+    let (ef_re, ef_im, ef_as_f32) = ef_views(&ef);
+
+    let len = size as c_int;
+    let pai = ai.as_mut_ptr();
+    let pef = ef_as_f32.as_ptr();
+
+    b.iter(|| {
+        unsafe {
+            kernel6(len, pai, pef);
+        }
+    } )
+}
 
 
