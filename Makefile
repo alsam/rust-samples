@@ -3,7 +3,7 @@
 #
 
 CC = gcc
-CFLAGS = -O3 -fomit-frame-pointer -march=native -mfpmath=sse -msse3 -Wall
+CFLAGS = -O3 -fomit-frame-pointer -march=native -mfpmath=sse -msse2 -Wall
 
 build: ckernels
 	cargo build
