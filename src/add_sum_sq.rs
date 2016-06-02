@@ -101,7 +101,8 @@ fn cook_input_data() -> (Options, Vec<f32>, Vec<c32>) {
         match ap.parse_args() {
             Ok(()) => {}
             Err(x) => {
-                exit(x);
+                //exit(x);
+                //println!("unlnown option: {}",x);
             }
         }
     }
@@ -223,14 +224,13 @@ fn main() {
         timer_stop!(timer, "kernel5");
     }
 
-
     println!("fini");
 }
 
 
 #[bench]
 fn setup_kernel4(b: &mut Bencher) {
-    let (options, mut ai, ef) = cook_input_data();
+    let (_, mut ai, ef) = cook_input_data();
     let size = ai.len();
 
     let (ef_re, ef_im, ef_as_f32) = ef_views(&ef);
