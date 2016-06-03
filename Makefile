@@ -80,13 +80,14 @@ ckernels:
 	$(CC) $(CFLAGS) -shared src/ckernels.c -o target/release/libckernels.so
 
 add_sum_sq: ckernels
-	cargo run --release --bin add_sum_sq -- -v -i data/add_sum_sq/sum_ef_20085.bin
+	cargo run --verbose --release --bin add_sum_sq
+	#cargo run --verbose --release --bin add_sum_sq -- -v -i data/add_sum_sq/sum_ef_20085.bin
 
 add_sum_sq_profile: ckernels
 	cargo profiler cachegrind --bin ./target/debug/add_sum_sq -- -k 1 -i `pwd`/data/add_sum_sq/sum_ef_20085.bin
 
 add_sum_sq_bench: ckernels
-	cargo bench --bin add_sum_sq
+	cargo bench --verbose --bin add_sum_sq
 
 add_sum_sq_operf: ckernels
 	operf ./target/debug/add_sum_sq -k 4 -n 100

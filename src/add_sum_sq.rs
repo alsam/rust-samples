@@ -78,6 +78,12 @@ fn kernel7(ai: &Vec<f32>, ef: &Vec<c32>) -> Vec<f32> {
     x
 }
 
+fn kernel8(ai: &mut Vec<f32>, ef: &Vec<c32>) {
+    for (x, y) in ai.iter_mut().zip(ef) {
+        *x += (*y).re.powi(2) + (*y).im.powi(2);
+    }
+}
+
 struct Options {
     verbose: bool,
     name: String,
@@ -180,6 +186,16 @@ fn main() {
     let (ef_re, ef_im, ef_as_f32) = ef_views(&ef);
 
     let rep_count = options.rep_count;
+
+    if options.kernel_num == 8 || options.kernel_num == -1 {
+        let timer = timer_start!();
+  
+        for _ in 0..rep_count {
+            kernel8(&mut ai, &ef);
+        }
+  
+        timer_stop!(timer, "kernel8");
+    }
 
     if options.kernel_num == 1 || options.kernel_num == -1 {
         let timer = timer_start!();
@@ -334,6 +350,15 @@ fn setup_kernel7(b: &mut Bencher) {
 
     b.iter(|| {
         ai = kernel7(&ai, &ef);
+    } )
+}
+
+#[bench]
+fn setup_kernel8(b: &mut Bencher) {
+    let (_, mut ai, ef) = cook_input_data(false);
+
+    b.iter(|| {
+        kernel8(&mut ai, &ef);
     } )
 }
 
