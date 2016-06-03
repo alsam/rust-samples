@@ -69,6 +69,15 @@ extern "C" {
     fn kernel6(L: c_int, ai: *mut f32, ef: *const f32);
 }
 
+fn kernel7(ai: &Vec<f32>, ef: &Vec<c32>) -> Vec<f32> {
+    let x: Vec<f32> = ai.iter()
+                .zip( ef.iter() )
+                .map(
+                    |(x, y)| x + y.re.powi(2) + y.im.powi(2)
+                    ).collect();
+    x
+}
+
 struct Options {
     verbose: bool,
     name: String,
@@ -316,6 +325,15 @@ fn setup_kernel6(b: &mut Bencher) {
         unsafe {
             kernel6(len, pai, pef);
         }
+    } )
+}
+
+#[bench]
+fn setup_kernel7(b: &mut Bencher) {
+    let (_, mut ai, ef) = cook_input_data(false);
+
+    b.iter(|| {
+        ai = kernel7(&ai, &ef);
     } )
 }
 
