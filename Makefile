@@ -76,6 +76,7 @@ simd:
 	time cargo run --release --bin nbody_simd 100000000
 
 ckernels:
+	mkdir -p target/debug/ target/release/
 	$(CC) $(CFLAGS) -g -shared src/ckernels.c -o target/debug/libckernels.so
 	$(CC) $(CFLAGS) -shared src/ckernels.c -o target/release/libckernels.so
 
