@@ -67,9 +67,10 @@ extern "C" {
     fn kernel4(L: c_int, ai: *mut f32, ef: *const f32);
     fn kernel5(L: c_int, ai: *mut f32, ef: *const f32);
     fn kernel6(L: c_int, ai: *mut f32, ef: *const f32);
+    fn kernel7(L: c_int, ai: *mut f32, ef: *const f32);
 }
 
-fn kernel7(ai: &Vec<f32>, ef: &Vec<c32>) -> Vec<f32> {
+fn kernel8(ai: &Vec<f32>, ef: &Vec<c32>) -> Vec<f32> {
     let x: Vec<f32> = ai.iter()
                 .zip( ef.iter() )
                 .map(
@@ -78,7 +79,7 @@ fn kernel7(ai: &Vec<f32>, ef: &Vec<c32>) -> Vec<f32> {
     x
 }
 
-fn kernel8(ai: &mut Vec<f32>, ef: &Vec<c32>) {
+fn kernel9(ai: &mut Vec<f32>, ef: &Vec<c32>) {
     for (x, y) in ai.iter_mut().zip(ef) {
         *x += (*y).re.powi(2) + (*y).im.powi(2);
     }
@@ -187,14 +188,14 @@ fn main() {
 
     let rep_count = options.rep_count;
 
-    if options.kernel_num == 8 || options.kernel_num == -1 {
+    if options.kernel_num == 9 || options.kernel_num == -1 {
         let timer = timer_start!();
   
         for _ in 0..rep_count {
-            kernel8(&mut ai, &ef);
+            kernel9(&mut ai, &ef);
         }
   
-        timer_stop!(timer, "kernel8");
+        timer_stop!(timer, "kernel9");
     }
 
     if options.kernel_num == 1 || options.kernel_num == -1 {
@@ -347,18 +348,37 @@ fn setup_kernel6(b: &mut Bencher) {
 #[bench]
 fn setup_kernel7(b: &mut Bencher) {
     let (_, mut ai, ef) = cook_input_data(false);
+    let size = ai.len();
+
+    let (ef_re, ef_im, ef_as_f32) = ef_views(&ef);
+
+    let len = size as c_int;
+    let pai = ai.as_mut_ptr();
+    let pef = ef_as_f32.as_ptr();
 
     b.iter(|| {
-        ai = kernel7(&ai, &ef);
+        unsafe {
+            kernel7(len, pai, pef);
+        }
     } )
 }
+
 
 #[bench]
 fn setup_kernel8(b: &mut Bencher) {
     let (_, mut ai, ef) = cook_input_data(false);
 
     b.iter(|| {
-        kernel8(&mut ai, &ef);
+        ai = kernel8(&ai, &ef);
+    } )
+}
+
+#[bench]
+fn setup_kernel9(b: &mut Bencher) {
+    let (_, mut ai, ef) = cook_input_data(false);
+
+    b.iter(|| {
+        kernel9(&mut ai, &ef);
     } )
 }
 
