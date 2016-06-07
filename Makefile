@@ -84,6 +84,11 @@ add_sum_sq: ckernels
 	cargo run --verbose --release --bin add_sum_sq
 	#cargo run --verbose --release --bin add_sum_sq -- -v -i data/add_sum_sq/sum_ef_20085.bin
 
+add_sum_check: ckernels
+	cargo run --verbose --release --bin add_sum_sq -- -v -n 1 -k 5 -i `pwd`/data/add_sum_sq/sum_ef_20085.bin > _ai_out5_
+	cargo run --verbose --release --bin add_sum_sq -- -v -n 1 -k 7 -i `pwd`/data/add_sum_sq/sum_ef_20085.bin > _ai_out7_
+
+
 add_sum_sq_profile: ckernels
 	cargo profiler cachegrind --bin ./target/debug/add_sum_sq -- -k 1 -i `pwd`/data/add_sum_sq/sum_ef_20085.bin
 

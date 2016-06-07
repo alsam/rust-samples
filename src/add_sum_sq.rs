@@ -256,7 +256,31 @@ fn main() {
         }
 
         timer_stop!(timer, "kernel5");
+        if rep_count == 1 {
+            println!("output from kernel 5 ai: {:?}", ai);
+        }
+
     }
+
+
+    if options.kernel_num == 7 || options.kernel_num == -1 {
+        let len = size as c_int;
+        let pai = ai.as_mut_ptr();
+        let pef = ef_as_f32.as_ptr();
+        let timer = timer_start!();
+
+        for _ in 0..rep_count {
+            unsafe {
+                kernel7(len, pai, pef);
+            }
+        }
+
+        timer_stop!(timer, "kernel7");
+        if rep_count == 1 {
+            println!("output from kernel 7 ai: {:?}", ai);
+        }
+    }
+
 
     println!("fini");
 }
