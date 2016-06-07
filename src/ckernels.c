@@ -43,16 +43,16 @@ void kernel7(int L, float* ai, float* ef) {
 //    double re_part = ef[2*i], im_part = ef[2*i+1];
 //    ai[i] += re_part * re_part + im_part * im_part;
 //  }
-  for(i = 0; i < L; i += 8) {
-    ai[i + 0] += (double)ef[2*(i + 0)] * (double)ef[2*(i + 0)] + (double)ef[2*(i + 0)+1] * (double)ef[2*(i + 0)+1];
-    ai[i + 1] += (double)ef[2*(i + 1)] * (double)ef[2*(i + 1)] + (double)ef[2*(i + 1)+1] * (double)ef[2*(i + 1)+1];
-    ai[i + 2] += (double)ef[2*(i + 2)] * (double)ef[2*(i + 2)] + (double)ef[2*(i + 2)+1] * (double)ef[2*(i + 2)+1];
-    ai[i + 3] += (double)ef[2*(i + 3)] * (double)ef[2*(i + 3)] + (double)ef[2*(i + 3)+1] * (double)ef[2*(i + 3)+1];
 
-    ai[i + 0 + 4] += (double)ef[2*(i + 0 + 4)] * (double)ef[2*(i + 0 + 4)] + (double)ef[2*(i + 0 + 4)+1] * (double)ef[2*(i + 0 + 4)+1];
-    ai[i + 1 + 4] += (double)ef[2*(i + 1 + 4)] * (double)ef[2*(i + 1 + 4)] + (double)ef[2*(i + 1 + 4)+1] * (double)ef[2*(i + 1 + 4)+1];
-    ai[i + 2 + 4] += (double)ef[2*(i + 2 + 4)] * (double)ef[2*(i + 2 + 4)] + (double)ef[2*(i + 2 + 4)+1] * (double)ef[2*(i + 2 + 4)+1];
-    ai[i + 3 + 4] += (double)ef[2*(i + 3 + 4)] * (double)ef[2*(i + 3 + 4)] + (double)ef[2*(i + 3 + 4)+1] * (double)ef[2*(i + 3 + 4)+1];
-
+  for(i = 0; i < L; i += 4) {
+    __m128 ai_slice = _mm_load_ps(&ai[i]);
+    __m128 re_slice = _mm_load_ps(&ef[2*i]);
+    __m128 im_slice = _mm_load_ps(&ef[2*i+4]);
+    re_slice = _mm_mul_ps(re_slice, re_slice);
+    im_slice = _mm_mul_ps(im_slice, im_slice);
+    __m128 sum = _mm_add_ps(re_slice, im_slice);
+    sum = _mm_add_ps(ai_slice, sum);
+    _mm_store_ps(&ai[i], sum);
   }
+
 }
