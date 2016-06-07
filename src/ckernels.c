@@ -27,7 +27,7 @@ void kernel5(int L, float* ai, float* ef) {
 
 void kernel6(int L, float* ai, float* ef) {
   int i;
-  for(i = 0; i < L/4; i += 4) {
+  for(i = 0; i < L; i += 4) {
     ai[i + 0] += (double)ef[2*(i + 0)] * (double)ef[2*(i + 0)] + (double)ef[2*(i + 0)+1] * (double)ef[2*(i + 0)+1];
     ai[i + 1] += (double)ef[2*(i + 1)] * (double)ef[2*(i + 1)] + (double)ef[2*(i + 1)+1] * (double)ef[2*(i + 1)+1];
     ai[i + 2] += (double)ef[2*(i + 2)] * (double)ef[2*(i + 2)] + (double)ef[2*(i + 2)+1] * (double)ef[2*(i + 2)+1];
@@ -43,7 +43,7 @@ void kernel7(int L, float* ai, float* ef) {
 //    double re_part = ef[2*i], im_part = ef[2*i+1];
 //    ai[i] += re_part * re_part + im_part * im_part;
 //  }
-  for(i = 0; i < L/8; i += 8) {
+  for(i = 0; i < L; i += 8) {
     ai[i + 0] += (double)ef[2*(i + 0)] * (double)ef[2*(i + 0)] + (double)ef[2*(i + 0)+1] * (double)ef[2*(i + 0)+1];
     ai[i + 1] += (double)ef[2*(i + 1)] * (double)ef[2*(i + 1)] + (double)ef[2*(i + 1)+1] * (double)ef[2*(i + 1)+1];
     ai[i + 2] += (double)ef[2*(i + 2)] * (double)ef[2*(i + 2)] + (double)ef[2*(i + 2)+1] * (double)ef[2*(i + 2)+1];
