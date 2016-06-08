@@ -50,7 +50,9 @@ void kernel7(int L, float* ai, float* ef) {
     __m128 im_slice = _mm_load_ps(&ef[2*i+4]);
     re_slice = _mm_mul_ps(re_slice, re_slice);
     im_slice = _mm_mul_ps(im_slice, im_slice);
-    __m128 sum = _mm_add_ps(re_slice, im_slice);
+    __m128 shfl1 = _mm_shuffle_ps(re_slice, im_slice, _MM_SHUFFLE(2,0,2,0));
+    __m128 shfl2 = _mm_shuffle_ps(re_slice, im_slice, _MM_SHUFFLE(3,1,3,1));
+    __m128 sum = _mm_add_ps(shfl1, shfl2);
     sum = _mm_add_ps(ai_slice, sum);
     _mm_store_ps(&ai[i], sum);
   }

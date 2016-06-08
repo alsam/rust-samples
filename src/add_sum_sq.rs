@@ -179,6 +179,29 @@ fn ef_views(ef: &Vec<c32>) -> (Vec<f32>, Vec<f32>, Vec<f32>) {
     (ef_re, ef_im, ef_as_f32)
 }
 
+fn check_kernels_diff(ai: &Vec<f32>, ef_as_f32: &Vec<f32>) -> Vec<f32> {
+    let mut ai_copy1 = ai.clone();
+    let mut ai_copy2 = ai.clone();
+    let size      = ai.len();
+    let len       = size as c_int;
+    let pai_copy1 = ai_copy1.as_mut_ptr();
+    let pai_copy2 = ai_copy2.as_mut_ptr();
+    let pef       = ef_as_f32.as_ptr();
+
+    unsafe {
+            kernel5(len, pai_copy1, pef);
+            kernel7(len, pai_copy2, pef);
+    }
+
+    let x: Vec<f32> = ai_copy1.iter()
+                .zip( ai_copy2.iter() )
+                .map(
+                    |(x, y)| (x - y)
+                    ).collect();
+
+    x
+}
+
 fn main() {
 
     let (options, mut ai, ef) = cook_input_data(true);
@@ -281,6 +304,8 @@ fn main() {
         }
     }
 
+    let diff = check_kernels_diff(&ai, &ef_as_f32);
+    println!("diff : {:?}",diff);
 
     println!("fini");
 }
