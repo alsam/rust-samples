@@ -305,7 +305,17 @@ fn main() {
     }
 
     let diff = check_kernels_diff(&ai, &ef_as_f32);
-    println!("diff : {:?}",diff);
+    let mut ind = 0;
+    let mut max_diff = 0.0;
+    for (i, val) in diff.into_iter().enumerate() {
+        println!("{} {:.17}", i, val);
+        if val.abs() > max_diff {
+            max_diff = val.abs();
+            ind = i;
+        }
+    }
+    println!("max_diff : {:.17} ind : {}", max_diff, ind);
+    //println!("diff : {:?}",diff);
 
     println!("fini");
 }
