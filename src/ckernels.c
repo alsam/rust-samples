@@ -14,14 +14,19 @@ void kernel4(int L, float* ai, float* ef) {
   } 
 }
 
-void kernel5(int L, float* ai, float* ef) {
+void kernel5(int L, float* __restrict__ ai, float* __restrict__ ef) {
   int i;
-//#pragma GCC ivdep
+  float *__restrict__ ai1 = __builtin_assume_aligned(ai,16);
+  float *__restrict__ ef1 = __builtin_assume_aligned(ef,16);
+#pragma GCC ivdep
+//#pragma clang loop vectorize(enable) 
+#pragma clang loop vectorize_width(2) interleave_count(2)
+//#pragma simd
+//#pragma omp simd
 //#pragma unroll(8)
   for(i = 0; i < L; i++) {
-//    ai[i] += (double)ef[2*i] * (double)ef[2*i] + (double)ef[2*i+1] * (double)ef[2*i+1];
-    double re_part = ef[2*i], im_part = ef[2*i+1];
-    ai[i] += re_part * re_part + im_part * im_part;
+    double re_part = ef1[2*i], im_part = ef1[2*i+1];
+    ai1[i] += re_part * re_part + im_part * im_part;
   } 
 }
 

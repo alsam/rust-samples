@@ -2,8 +2,15 @@
 #  Makefile for running rust samples
 #
 
-CC = gcc
-CFLAGS = -O3 -fomit-frame-pointer -march=native -mfpmath=sse -msse2 -Wall
+## CC = gcc
+## #CFLAGS = -O3 -fomit-frame-pointer -march=native -mfpmath=sse -msse2 -ftree-vectorize -ftree-vectorizer-verbose=7 -fopt-info-vec-missed -Wall
+## CFLAGS = -O3 -fomit-frame-pointer -march=native -mfpmath=sse -msse2 -ftree-vectorize -fopt-info-vec -Wall
+
+CC = clang
+CFLAGS = -O3 -mllvm -force-vector-width=2
+#CFLAGS = -O5
+#CFLAGS = -O3 -mllvm -fslp-vectorize-aggressive
+
 
 build: ckernels
 	cargo build
@@ -79,6 +86,7 @@ ckernels:
 	mkdir -p target/debug/ target/release/
 	$(CC) $(CFLAGS) -g -shared src/ckernels.c -o target/debug/libckernels.so
 	$(CC) $(CFLAGS) -shared src/ckernels.c -o target/release/libckernels.so
+	cp target/release/libckernels.so ~/lib/
 
 add_sum_sq: ckernels
 	cargo run --verbose --release --bin add_sum_sq
