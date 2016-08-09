@@ -1,3 +1,5 @@
+// Aftype -> DType [compilation errors with sample code](https://github.com/arrayfire/arrayfire-rust/issues/75)
+
 extern crate dft;
 use dft::{Operation, Plan, Transform, c64};
 use std::iter::FromIterator;
@@ -36,29 +38,50 @@ fn main() {
     // b = [4, 5, 6, ...]
 
     // the same with ArrayFire
-    // only CPU
-    set_backend(Backend::AF_BACKEND_CPU);
+
+    let available = get_available_backends();
+    if available.contains(&Backend::CPU) {
+        println!("Evaluating CPU Backend...");
+        set_backend(Backend::CPU);
+        println!("There are {} CPU compute devices", device_count());
+    }
+
+    //if available.contains(&Backend::CUDA) {
+    //    println!("Evaluating CUDA Backend...");
+    //    set_backend(Backend::CUDA);
+    //    println!("There are {} CUDA compute devices", device_count());
+    //    test_backend();
+    //}
+
+    //if available.contains(&Backend::OPENCL) {
+    //    println!("Evaluating OpenCL Backend...");
+    //    set_backend(Backend::OPENCL);
+    //    println!("There are {} OpenCL compute devices", device_count());
+    //    test_backend();
+    //}
+
     let mut int_values = Vec::from_iter((0..size).map(|idx| idx + 1));
     let cta_grid = Dim4::new(&[size as u64, 1, 1, 1]);
-    let af = Array::new(cta_grid,
-        &Vec::from_iter(int_values.iter().map (|&i| c64::new(i as f64, 0.0) ) ), Aftype::C64).unwrap();
+    let af = Array::new(
+        &Vec::from_iter(int_values.iter().map (|&i| c64::new(i as f64, 0.0) ) ), cta_grid );
 
-    println!("the constructed array has {} elements", af.elements().unwrap());
+    println!("the constructed array has {} elements", af.elements());
     print(&af);
 
-    let kernelf = Array::new(cta_grid, &kernel, Aftype::C64).unwrap();
+    let kernelf = Array::new(&kernel, cta_grid);
     println!("kernelf:");
     print(&kernelf);
 
     let isize = size as i64;
     let scale = 1.0f64 / (size as f64);
-    let af_transformed = fft(&af, 1.0, isize).unwrap();
+    let af_transformed = fft(&af, 1.0, isize);
     println!("af_transformed:");
     print(&af_transformed);
-    let convolved1 = &af_transformed * &kernelf;
+    //let convolved1 = &af_transformed * &kernelf;
+    let convolved1 = &mul(&af_transformed, &kernelf, false);
     println!("convolved1:");
     print(&convolved1);
-    let shifted = ifft(&convolved1, scale, isize).unwrap();
+    let shifted = ifft(&convolved1, scale, isize);
     println!("shifted:");
     print(&shifted);
 }
