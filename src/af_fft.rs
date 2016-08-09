@@ -7,34 +7,11 @@ extern crate arrayfire as af;
 
 use af::*;
 
-fn main() {
+fn test_backend() {
     let num_rows: u64 = 4;
     let num_cols: u64 = 1;
     let dims = Dim4::new(&[num_rows, num_cols, 1, 1]);
     let dims1 = Dim4::new(&[1, 1, 1, 1]);
-    //set_backend(Backend::AF_BACKEND_CPU);
-    let available = get_available_backends();
-    if available.contains(&Backend::CPU) {
-        println!("Evaluating CPU Backend...");
-        set_backend(Backend::CPU);
-        println!("There are {} CPU compute devices", device_count());
-    }
-
-    //if available.contains(&Backend::CUDA) {
-    //    println!("Evaluating CUDA Backend...");
-    //    set_backend(Backend::CUDA);
-    //    println!("There are {} CUDA compute devices", device_count());
-    //    test_backend();
-    //}
-
-    //if available.contains(&Backend::OPENCL) {
-    //    println!("Evaluating OpenCL Backend...");
-    //    set_backend(Backend::OPENCL);
-    //    println!("There are {} OpenCL compute devices", device_count());
-    //    test_backend();
-    //}
-
-
     let a = iota::<f32>(dims, dims1);
     println!("a:");
     print(&a);
@@ -44,4 +21,29 @@ fn main() {
     let c = ifft(&b, 1.0, num_rows as i64);
     println!("c:");
     print(&c);
+}
+
+fn main() {
+    let available = get_available_backends();
+    if available.contains(&Backend::CPU) {
+        println!("Evaluating CPU Backend...");
+        set_backend(Backend::CPU);
+        println!("There are {} CPU compute devices", device_count());
+        test_backend();
+    }
+
+    if available.contains(&Backend::CUDA) {
+        println!("Evaluating CUDA Backend...");
+        set_backend(Backend::CUDA);
+        println!("There are {} CUDA compute devices", device_count());
+        test_backend();
+    }
+
+    if available.contains(&Backend::OPENCL) {
+        println!("Evaluating OpenCL Backend...");
+        set_backend(Backend::OPENCL);
+        println!("There are {} OpenCL compute devices", device_count());
+        test_backend();
+    }
+
 }
