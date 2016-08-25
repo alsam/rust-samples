@@ -278,10 +278,10 @@ fn grid_bb_indices<T: Num>(grid: &Grid<T>) -> ((isize, isize), (isize, isize)) {
 fn write_asy<T: Num+std::fmt::Display>(fname: &str,
                      bounding_box: ((usize,usize), (usize,usize)),
                      grid: &Grid<T>) -> Result<(), io::Error> {
-    const delta : usize = 10;
+    const DELTA : usize = 10;
     let ((llx,lly), (urx,ury)) = bounding_box;
     let mut f = try!(File::create(fname));
-    try!(write!(f, "size({},{});\n", (urx-llx)*delta, (ury-lly)*delta));
+    try!(write!(f, "size({},{});\n", (urx-llx)*DELTA, (ury-lly)*DELTA));
     try!(f.write(indoc!("
                  void draw_grid_cell(pair lb, pair ru, pen p = defaultpen())
                  {
@@ -294,8 +294,8 @@ fn write_asy<T: Num+std::fmt::Display>(fname: &str,
         for j in lly .. ury {
             let p = &points[i][j];
             if !p.is_zero() {
-                let lb = (i    *delta, j    *delta);
-                let ru = ((i+1)*delta, (j+1)*delta);
+                let lb = (i    *DELTA, j    *DELTA);
+                let ru = ((i+1)*DELTA, (j+1)*DELTA);
                 try!(write!(f, "draw_grid_cell({:?}, {:?}, gray*{});\n", lb, ru, p));
             }
         }

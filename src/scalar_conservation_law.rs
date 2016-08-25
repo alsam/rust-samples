@@ -84,8 +84,8 @@ fn test_min_dx() {
     }
 
     // 1. prepare non-equidistant vector `x`
-    let base_dx = std::f64::consts::FRAC_PI_4; // 0.785398
-    let mut x = Vec::from_iter ((1..7) .map(|idx| ((idx as f64).sin() * base_dx).cos().abs() ) );
+    let BASE_DX = std::f64::consts::FRAC_PI_4; // 0.785398
+    let mut x = Vec::from_iter ((1..7) .map(|idx| ((idx as f64).sin() * BASE_DX).cos().abs() ) );
 
     x.sort_by(|&x, &y|
         if      x < y { Ordering::Less }
@@ -198,22 +198,22 @@ fn main() {
     }
 
     // problem-specific parameters:
-    const jump     : f64   =  0.0f64;
-    const x_left   : f64   = -0.2f64;
-    const x_right  : f64   =  1.0f64;
-    const statelft : f64   =  2.0f64;
-    const statergt : f64   =  0.0f64;
-    const velocity : f64   =  1.0f64;
+    const JUMP     : f64   =  0.0f64;
+    const X_LEFT   : f64   = -0.2f64;
+    const X_RIGHT  : f64   =  1.0f64;
+    const STATELFT : f64   =  2.0f64;
+    const STATERGT : f64   =  0.0f64;
+    const VELOCITY : f64   =  1.0f64;
 
-    const tmax     : f64   =  0.8f64;
-    const cfl      : f64   =  0.9f64;
+    const TMAX     : f64   =  0.8f64;
+    const CFL      : f64   =  0.9f64;
 
     // array bounds:
     let   nsteps           = options.num_steps;
     let   ncells           = options.num_cells;
-    const fc       : usize = 2;
+    const FC       : usize = 2;
     let   lc               = ncells+2;
-    const ifirst   : usize = 1;
+    const IFIRST   : usize = 1;
     let   ilast            = ncells-1;
 
     // work arrays
@@ -226,14 +226,14 @@ fn main() {
     let mut x    = vec![0.0f64; ncells+1];
 
     //  uniform mesh:
-    let dx = (x_right-x_left) / ncells as f64;
-    for ie in ifirst .. ilast+1 {
-        x[ie] = x_left + ie as f64 * dx;
+    let dx = (X_RIGHT-X_LEFT) / ncells as f64;
+    for ie in IFIRST .. ilast+1 {
+        x[ie] = X_LEFT + ie as f64 * dx;
     }
 
     // initial values for diffential equation:
-    let ijump = cmp::max(ifirst as isize -1,
-                         cmp::min((ncells as f64 * (jump-x_left)/(x_right-x_left) + 0.5) as isize,
+    let ijump = cmp::max(IFIRST as isize -1,
+                         cmp::min((ncells as f64 * (JUMP-X_LEFT)/(X_RIGHT-X_LEFT) + 0.5) as isize,
                                   (ilast+1) as isize)) as usize;
     if options.verbose {
         println!("ijump : {}", ijump);
@@ -241,7 +241,7 @@ fn main() {
 
     // stable timestep (independent of time for linear advection):
     let mindx = min_dx(&x);
-    let dt = cfl*mindx/velocity.abs();
+    let dt = CFL*mindx/VELOCITY.abs();
 
     //let d = Duration::span(||{
     let timer = std::time::Instant::now();
@@ -251,21 +251,21 @@ fn main() {
             }
 
             // left state to left of jump
-            for ic in ifirst .. ijump-1 {
-                u[ic+3] = statelft;
+            for ic in IFIRST .. ijump-1 {
+                u[ic+3] = STATELFT;
             }
 
             // volume-weighted average in cell containing jump
-            let frac = (jump-x_left-ijump as f64 *dx)/(x_right-x_left);
-            u[ijump+3] = statelft*frac+statergt*(1.0f64-frac);
+            let frac = (JUMP-X_LEFT-ijump as f64 *dx)/(X_RIGHT-X_LEFT);
+            u[ijump+3] = STATELFT*frac+STATERGT*(1.0f64-frac);
 
             // right state to right of jump
             for ic in ijump+1 .. ilast {
-                u[ic+3]=statergt;
+                u[ic+3]=STATERGT;
             }
 
-            do_computation(nsteps, ncells, tmax, ifirst, ilast,
-                           statelft, statergt, velocity, dt, fc, lc, &x, &mut u, true);
+            do_computation(nsteps, ncells, TMAX, IFIRST, ilast,
+                           STATELFT, STATERGT, VELOCITY, dt, FC, lc, &x, &mut u, true);
         }
     //});
     //println!("elapsed time: {:?}s.", timer.elapsed());
