@@ -55,13 +55,13 @@ struct Grid<T> {
 }
 
 #[derive(Debug)]
-enum GridType { f32_t, f64_t, c32_t, c64_t, }
+enum GridType { F32T, F64T, C32T, C64T, }
 
 enum GridVariant {
-    Grid_f32(Box<Grid<f32>>),
-    Grid_f64(Box<Grid<f64>>),
-    Grid_c32(Box<Grid<c32>>),
-    Grid_c64(Box<Grid<c64>>),
+    GridF32(Box<Grid<f32>>),
+    GridF64(Box<Grid<f64>>),
+    GridC32(Box<Grid<c32>>),
+    GridC64(Box<Grid<c64>>),
 }
 
 trait GridTrait<T> {
@@ -178,10 +178,10 @@ fn read_from_file(namein: &String, data_path: &String, verbose: bool) -> Result<
 
     let (grid_type, grid_elem_size) =
         match (prec,typ) {
-            (1,1) => (GridType::f32_t, mem::size_of::<f32>()),
-            (1,2) => (GridType::c32_t, mem::size_of::<c32>()),
-            (2,1) => (GridType::f64_t, mem::size_of::<f64>()),
-            (2,2) => (GridType::c64_t, mem::size_of::<c64>()),
+            (1,1) => (GridType::F32T, mem::size_of::<f32>()),
+            (1,2) => (GridType::C32T, mem::size_of::<c32>()),
+            (2,1) => (GridType::F64T, mem::size_of::<f64>()),
+            (2,2) => (GridType::C64T, mem::size_of::<c64>()),
             (_,_) => panic!("illegal combination of prec: {} typ: {}", prec, typ)
         };
     let grid_sz = (xe * ye) as usize;
@@ -198,15 +198,15 @@ fn read_grid(namein: &str, dpath: &String, verbose: bool) -> GridVariant {
     let (byte_order, grid_type, xe, ye, grid_buf) = read_from_file(&namein.to_string(), &dpath, verbose).unwrap();
     let mask_grid =
         match grid_type {
-            GridType::f32_t => {
+            GridType::F32T => {
                 let mut f32_grid = Box::new(Grid::<f32>::new());
                 (*f32_grid).read(byte_order, xe as usize, ye as usize, &grid_buf);
-                GridVariant::Grid_f32(f32_grid)
+                GridVariant::GridF32(f32_grid)
             },
-            GridType::c32_t => {
+            GridType::C32T => {
                 let mut c32_grid = Box::new(Grid::<c32>::new());
                 (*c32_grid).read(byte_order, xe as usize, ye as usize, &grid_buf);
-                GridVariant::Grid_c32(c32_grid)
+                GridVariant::GridC32(c32_grid)
             },
             _ => panic!("not yet implemented for grid type: {:?}", grid_type)
         };
@@ -321,7 +321,7 @@ fn main() {
     let mask_grid = read_grid(&fname.clone(), &dpath.clone(), args.flag_verbose);
 
     match mask_grid {
-        GridVariant::Grid_f32(agrid) => //dump_grid("f32_grid", &*agrid),
+        GridVariant::GridF32(agrid) => //dump_grid("f32_grid", &*agrid),
         {
           let (nnz, total) = count_nnz_functional_way(&*agrid);
           println!("nnz for f32 grid: {:} total: {:} ratio: {:.3}%",
@@ -342,7 +342,7 @@ fn main() {
                     &*agrid);
         }
 
-        GridVariant::Grid_c32(agrid) => dump_grid("c32_grid", &*agrid),
+        GridVariant::GridC32(agrid) => dump_grid("c32_grid", &*agrid),
         _ => panic!("not yet implemented")
     }
 

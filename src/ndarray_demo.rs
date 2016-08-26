@@ -20,7 +20,7 @@ fn main() {
  
     for ((i, j), elt) in a.indexed_iter_mut() {
  
-        *elt = ((i as f32).powi(2) + (j as f32).powi(2));
+        *elt = (i as f32).powi(2) + (j as f32).powi(2);
     
     }
     println!("{:3}", a);
