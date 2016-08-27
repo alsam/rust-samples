@@ -8,7 +8,7 @@ use num_traits::Float;
 use ndarray::{
     ArrayView,
     ArrayViewMut,
-    OwnedArray,
+    Array,
     Ix,
 };
 
@@ -16,7 +16,7 @@ type Ix2 = (Ix, Ix);
 
 fn main() {
     let n = 16;
-    let mut a = OwnedArray::zeros((n, n));
+    let mut a = Array::zeros((n, n));
  
     for ((i, j), elt) in a.indexed_iter_mut() {
  
