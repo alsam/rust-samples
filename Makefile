@@ -18,6 +18,9 @@ build: ckernels
 release: ckernels
 	cargo build --release
 
+clippy:
+	cargo clippy
+
 array_vec:
 	cargo run --bin array_vec_demo
 
