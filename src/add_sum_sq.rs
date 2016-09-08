@@ -40,21 +40,21 @@ macro_rules! timer_stop {
     }
 }
 
-fn kernel1(ai: &mut Vec<f32>, ef: &Vec<c32>) {
+fn kernel1(ai: &mut [f32], ef: &[c32]) {
     let size = ai.len();
     for i in 0..size {
         ai[i] += ef[i].re.powi(2) + ef[i].im.powi(2);
     }
 }
 
-fn kernel2(ai: &mut Vec<f32>, ef_re: &Vec<f32>, ef_im: &Vec<f32>) {
+fn kernel2(ai: &mut [f32], ef_re: &[f32], ef_im: &[f32]) {
     let size = ai.len();
     for i in 0..size {
         ai[i] += ef_re[i].powi(2) + ef_im[i].powi(2);
     }
 }
 
-fn kernel3(ai: &mut Vec<f32>, ef: &Vec<f32>) {
+fn kernel3(ai: &mut [f32], ef: &[f32]) {
     let size = ai.len();
     for i in 0..size {
         ai[i] += ef[2*i].powi(2) + ef[2*i+1].powi(2);
@@ -70,7 +70,7 @@ extern "C" {
     fn kernel7(L: c_int, ai: *mut f32, ef: *const f32);
 }
 
-fn kernel8(ai: &Vec<f32>, ef: &Vec<c32>) -> Vec<f32> {
+fn kernel8(ai: &[f32], ef: &[c32]) -> Vec<f32> {
     let x: Vec<f32> = ai.iter()
                 .zip( ef.iter() )
                 .map(
@@ -79,7 +79,7 @@ fn kernel8(ai: &Vec<f32>, ef: &Vec<c32>) -> Vec<f32> {
     x
 }
 
-fn kernel9(ai: &mut Vec<f32>, ef: &Vec<c32>) {
+fn kernel9(ai: &mut [f32], ef: &[c32]) {
     for (x, y) in ai.iter_mut().zip(ef) {
         *x += (*y).re.powi(2) + (*y).im.powi(2);
     }
@@ -168,7 +168,7 @@ fn cook_input_data(parse_options: bool) -> (Options, Vec<f32>, Vec<c32>) {
     (options, ai, ef)
 }
 
-fn ef_views(ef: &Vec<c32>) -> (Vec<f32>, Vec<f32>, Vec<f32>) {
+fn ef_views(ef: &[c32]) -> (Vec<f32>, Vec<f32>, Vec<f32>) {
     let size = ef.len();
     let ef_re = Vec::from_iter((0..size).map(|i| ef[i].re));
     let ef_im = Vec::from_iter((0..size).map(|i| ef[i].im));
