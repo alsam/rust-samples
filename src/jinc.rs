@@ -1,6 +1,9 @@
-#![feature(plugin)]
-#![feature(non_ascii_idents)]
-#![plugin(indoc)]
+// #![feature(plugin)]
+// #![feature(non_ascii_idents)]
+// #![plugin(indoc)]
+
+extern crate unindent;
+use unindent::unindent;
 
 extern crate num;
 
@@ -21,8 +24,10 @@ use integration::quadrature;
 /**
  * Returns a @value \f$\frac{J_1(2\pi r)}{2\pi r}\f$ where \f$J_1\f$ - Bessel function of first kind. ... */
 fn jinc(r: f64) -> f64 {
-    let π2r = 2.0f64*PI*r;
-    2.0f64*π2r.besselj(1.0) / π2r
+    //let π2r = 2.0f64*PI*r;
+    //2.0f64*π2r.besselj(1.0) / π2r
+    let pi2r = 2.0f64*PI*r;
+    2.0f64*pi2r.besselj(1.0) / pi2r
 }
 
 fn find_roots(a: f64, b: f64, f: &Fn(f64)->f64) -> Vec<f64> {
@@ -56,7 +61,8 @@ fn definite_integral(f: &Fn(f64) -> f64, a: f64, b: f64) -> f64 {
  
 fn write_plot_asy(fname: &str, x_label: &str, y_label: &str, x: &[f64], y: &[f64]) -> Result<(), io::Error> {
     let mut f = try!(File::create(fname));
-    try!(f.write(indoc!("
+    //try!(f.write(indoc!("
+    try!(f.write(unindent("
                  import graph;
                  
                  size(600,600,IgnoreAspect);
@@ -67,7 +73,8 @@ fn write_plot_asy(fname: &str, x_label: &str, y_label: &str, x: &[f64], y: &[f64
         try!(write!(f, "{}, ", x_elem));
     }
 
-    try!(f.write(indoc!("
+    //try!(f.write(indoc!("
+    try!(f.write(unindent("
                  };
                  real[] y = {").as_bytes()));
 
@@ -75,7 +82,8 @@ fn write_plot_asy(fname: &str, x_label: &str, y_label: &str, x: &[f64], y: &[f64
         try!(write!(f, "{}, ", y_elem));
     }
 
-    try!(f.write(indoc!(r#"
+    //try!(f.write(indoc!(r#"
+    try!(f.write(unindent(r#"
                  };
                  
                  draw(graph(x, y),  green, "", MarkFill[0]);
