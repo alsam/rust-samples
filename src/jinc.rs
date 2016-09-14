@@ -2,6 +2,9 @@
 // #![feature(non_ascii_idents)]
 // #![plugin(indoc)]
 
+// see [Conditional compilation of feature gates?](https://users.rust-lang.org/t/conditional-compilation-of-feature-gates/4765)
+#![cfg_attr(feature = "use-nightly", feature(non_ascii_idents))]
+
 extern crate unindent;
 use unindent::unindent;
 
@@ -23,9 +26,14 @@ use integration::quadrature;
 
 /**
  * Returns a @value \f$\frac{J_1(2\pi r)}{2\pi r}\f$ where \f$J_1\f$ - Bessel function of first kind. ... */
+#[cfg(feature = "use-nightly")]
 fn jinc(r: f64) -> f64 {
-    //let π2r = 2.0f64*PI*r;
-    //2.0f64*π2r.besselj(1.0) / π2r
+    let π2r = 2.0f64*PI*r;
+    2.0f64*π2r.besselj(1.0) / π2r
+}
+
+#[cfg(not(feature = "use-nightly"))]
+fn jinc(r: f64) -> f64 {
     let pi2r = 2.0f64*PI*r;
     2.0f64*pi2r.besselj(1.0) / pi2r
 }

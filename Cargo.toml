@@ -105,3 +105,7 @@ path = "src/nbody.rs"
 [[bin]]
 name = "add_sum_sq"
 path = "src/add_sum_sq.rs"
+
+[features]
+use-nightly = []
+
