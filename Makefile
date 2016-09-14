@@ -15,6 +15,9 @@ CFLAGS = -O3 -mllvm -force-vector-width=2
 build: ckernels
 	cargo build
 
+build-nightly: ckernels
+	cargo build --features use-nightly
+
 release: ckernels
 	cargo build --release
 
