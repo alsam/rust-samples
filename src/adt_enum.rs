@@ -76,11 +76,11 @@ trait GridTrait<T> {
     }
 
     // unformatted read from the buffer
-    fn read(&mut self, byte_order: ByteOrder, xsize: usize, ysize: usize, grid_buf: &Vec<u8>);
+    fn read(&mut self, byte_order: ByteOrder, xsize: usize, ysize: usize, grid_buf: &[u8]);
 }
 
 impl GridTrait<f32> for Grid<f32> {
-    fn read(&mut self, byte_order: ByteOrder, xsize: usize, ysize: usize, grid_buf: &Vec<u8>) {
+    fn read(&mut self, byte_order: ByteOrder, xsize: usize, ysize: usize, grid_buf: &[u8]) {
         self.points = Vec::from_iter((0..xsize).map(|i| {
             Vec::from_iter((0..ysize).map(|j| {
                 let start = (i * ysize + j) * mem::size_of::<f32>();
@@ -92,7 +92,7 @@ impl GridTrait<f32> for Grid<f32> {
 }
 
 impl GridTrait<c32> for Grid<c32> {
-    fn read(&mut self, byte_order: ByteOrder, xsize: usize, ysize: usize, grid_buf: &Vec<u8>) {
+    fn read(&mut self, byte_order: ByteOrder, xsize: usize, ysize: usize, grid_buf: &[u8]) {
         self.points = Vec::from_iter((0..xsize).map(|i| {
             Vec::from_iter((0..ysize).map(|j| {
                 let start_1 = (i * ysize + j) * 2 * mem::size_of::<f32>();
@@ -106,7 +106,7 @@ impl GridTrait<c32> for Grid<c32> {
 }
 
 impl GridTrait<f64> for Grid<f64> {
-    fn read(&mut self, byte_order: ByteOrder, xsize: usize, ysize: usize, grid_buf: &Vec<u8>) {
+    fn read(&mut self, byte_order: ByteOrder, xsize: usize, ysize: usize, grid_buf: &[u8]) {
         self.points = Vec::from_iter((0..xsize).map(|i| {
             Vec::from_iter((0..ysize).map(|j| {
                 let start = (i * ysize + j) * mem::size_of::<f64>();
@@ -134,7 +134,7 @@ Options:
 ");
 
 fn read_from_file(namein: &String,
-                  data_path: &String,
+                  data_path: &str,
                   verbose: bool)
                   -> Result<(ByteOrder, GridType, u32, u32, Vec<u8>), io::Error> {
     // let name = format!("{}/{}.bin", data_path, namein);
@@ -194,7 +194,7 @@ fn read_from_file(namein: &String,
     Ok((byte_order, grid_type, xe, ye, grid_buf))
 }
 
-fn read_grid(namein: &str, dpath: &String, verbose: bool) -> GridVariant {
+fn read_grid(namein: &str, dpath: &str, verbose: bool) -> GridVariant {
     let (byte_order, grid_type, xe, ye, grid_buf) =
         read_from_file(&namein.to_string(), &dpath, verbose).unwrap();
     let mask_grid = match grid_type {
