@@ -3,6 +3,11 @@ name = "rust-samples"
 version = "0.0.1"
 authors = ["Alexander Samoilov <alexander.samoilov@gmail.com>"]
 
+build = "build.rs"
+
+[build-dependencies]
+gcc = "*"
+
 [dependencies]
 libc = "*"
 rand = "*"

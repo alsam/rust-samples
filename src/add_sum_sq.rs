@@ -62,7 +62,7 @@ fn kernel3(ai: &mut [f32], ef: &[f32]) {
 }
 
 // now play with kernels written in C/C++
-#[link(name = "ckernels")]
+#[link(name = "ckernels-add-sum-sq")]
 extern "C" {
     fn kernel4(L: c_int, ai: *mut f32, ef: *const f32);
     fn kernel5(L: c_int, ai: *mut f32, ef: *const f32);
