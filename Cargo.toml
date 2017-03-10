@@ -111,6 +111,10 @@ path = "src/nbody_simd.rs"
 name = "add_sum_sq"
 path = "src/add_sum_sq.rs"
 
+[[bin]]
+name = "poll_thread"
+path = "src/poll_thread.rs"
+
 [features]
 use-nightly = []
 
