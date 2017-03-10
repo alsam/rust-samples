@@ -12,7 +12,7 @@ gcc = "*"
 libc = "*"
 rand = "*"
 docopt = "*"
-docopt_macros = "*"
+#docopt_macros = "*"
 rustc-serialize = "*"
 endianness = "*"
 argparse = "*"
@@ -83,17 +83,17 @@ path = "src/union.rs"
 name = "jinc"
 path = "src/jinc.rs"
 
-[[bin]]
-name = "adt_enum"
-path = "src/adt_enum.rs"
+#[[bin]]
+#name = "adt_enum"
+#path = "src/adt_enum.rs"
 
 [[bin]]
 name = "tiny"
 path = "src/tiny.rs"
 
-[[bin]]
-name = "naval_fate"
-path = "src/docopt_macro_use_case.rs"
+#[[bin]]
+#name = "naval_fate"
+#path = "src/docopt_macro_use_case.rs"
 
 [[bin]]
 name = "ndarray_demo"
