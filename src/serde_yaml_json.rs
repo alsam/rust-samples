@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 extern crate yaml_rust;
 extern crate argparse;
 #[macro_use] extern crate log;
@@ -49,6 +51,9 @@ struct ConfYaml(Vec<DbusMessageRouting>);
 #[derive(Serialize, Deserialize)]
 struct ClientRequest(DbusMessageType, String, Vec<NamedArg>);
 
+#[derive(Serialize, Deserialize)]
+struct ClientRequestBody(DbusMessageType, Vec<NamedArg>);
+
 fn main()
 {
     let conf = vec![
@@ -82,5 +87,19 @@ fn main()
                           );
     let rs = serde_json::to_string(&r).unwrap();
     println!("rs : {}", rs);
+
+    let rb = ClientRequestBody(DbusMessageType::Method, vec![
+                                        ("param1".to_string(), ArgValue::Str("Hi".to_string())),            
+                                        ("param2".to_string(), ArgValue::Bool(true)),            
+                                        ("param3".to_string(), ArgValue::Int64(17i64)),            
+                                        ("param4".to_string(), ArgValue::Double(2.718281828f64)),        
+                                ]
+                          );
+
+    let mut a_request = HashMap::new();
+    a_request.insert("api_name", rb);
+
+    let rsq = serde_json::to_string(&a_request).unwrap();
+    println!("rsq : {}", rsq);
 
 }
