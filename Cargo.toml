@@ -31,6 +31,15 @@ indoc = "^0.1"
 unindent = "*"
 integration =  { git = "https://github.com/photino/integration.git" }
 
+serde = "1.0"
+serde_json = "1.0"
+serde_yaml = "*"
+serde_derive = "1.0"
+ws = "*"
+log = "*"
+yaml-rust = "*"
+from_variants = "*"
+
 [[bin]]
 name = "array_vec_demo"
 path = "src/array_vec_demo.rs"
@@ -114,6 +123,10 @@ path = "src/add_sum_sq.rs"
 [[bin]]
 name = "poll_thread"
 path = "src/poll_thread.rs"
+
+[[bin]]
+name = "serde_yaml_json"
+path = "src/serde_yaml_json.rs"
 
 [features]
 use-nightly = []

@@ -81,6 +81,9 @@ jinc:
 tiny:
 	cargo run --bin tiny
 
+serde:
+	cargo run --bin serde_yaml_json
+
 ndarray:
 	cargo run --bin ndarray_demo
 
