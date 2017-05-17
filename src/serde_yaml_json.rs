@@ -30,12 +30,14 @@ enum DbusMessageType {
     Signal,
 }
 
+type NamedArg = (String,ArgValue);
+
 #[derive(Serialize, Deserialize)]
 struct DbusMessage {
     api_name: String,
     dbus_name: String,
     message_type: DbusMessageType,
-    args: Vec<(String,ArgValue)>,
+    args: Vec<NamedArg>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -43,6 +45,9 @@ struct DbusMessageRouting(String, String, String, Vec<DbusMessage>);
 
 #[derive(Serialize, Deserialize)]
 struct ConfYaml(Vec<DbusMessageRouting>);
+
+#[derive(Serialize, Deserialize)]
+struct ClientRequest(DbusMessageType, String, Vec<NamedArg>);
 
 fn main()
 {
@@ -55,10 +60,10 @@ fn main()
                                 dbus_name: "dbus_name".to_string(),
                                 message_type: DbusMessageType::Method,
                                 args: vec![
-                                    ("param1".to_string(), ArgValue::Str("Hi".to_string())),            
-                                    ("param2".to_string(), ArgValue::Bool(true)),            
-                                    ("param3".to_string(), ArgValue::Int64(17i64)),            
-                                    ("param4".to_string(), ArgValue::Double(2.718281828f64)),            
+                                    ("param1".to_string(), ArgValue::Str("Hi".to_string())),
+                                    ("param2".to_string(), ArgValue::Bool(true)),
+                                    ("param3".to_string(), ArgValue::Int64(17i64)),
+                                    ("param4".to_string(), ArgValue::Double(2.718281828f64)),
                                 ] 
                               }
             ]
@@ -67,5 +72,15 @@ fn main()
 
     let s = serde_yaml::to_string(&conf).unwrap();
     println!("s : {}", s);
+
+    let r = ClientRequest(DbusMessageType::Method, "api_name".to_string(), vec![
+                                        ("param1".to_string(), ArgValue::Str("Hi".to_string())),            
+                                        ("param2".to_string(), ArgValue::Bool(true)),            
+                                        ("param3".to_string(), ArgValue::Int64(17i64)),            
+                                        ("param4".to_string(), ArgValue::Double(2.718281828f64)),        
+                                ]
+                          );
+    let rs = serde_json::to_string(&r).unwrap();
+    println!("rs : {}", rs);
 
 }
