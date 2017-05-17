@@ -112,4 +112,9 @@ fn main()
     let rsq2 = serde_json::to_string(&de).expect("json serialization error");
     println!("rsq2 : {}", rsq2);
 
+    for key in de.keys() {
+        println!("key {}", key);
+    }
+    println!("key[0] : {}", de.keys().nth(0).unwrap());
+
 }
