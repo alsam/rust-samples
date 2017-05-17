@@ -1,3 +1,5 @@
+// https://github.com/serde-rs/serde/issues/927
+
 use std::collections::HashMap;
 
 extern crate yaml_rust;
@@ -11,7 +13,7 @@ extern crate serde_yaml;
 
 #[macro_use] extern crate serde_derive;
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize)]
 enum ArgValue {
     None,
     Str(String),
@@ -26,33 +28,33 @@ enum ArgValue {
     Double(f64),
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize)]
 enum DbusMessageType {
     Method,
     Signal,
 }
 
-type NamedArgs<'a> = HashMap<&'a str, ArgValue>;
+type NamedArgs = HashMap<&'static str, ArgValue>;
 
-#[derive(Serialize, Deserialize)]
-struct DbusMessage<'a> {
+#[derive(Serialize)]
+struct DbusMessage {
     api_name: String,
     dbus_name: String,
     message_type: DbusMessageType,
-    args: NamedArgs<'a>,
+    args: NamedArgs,
 }
 
-#[derive(Serialize, Deserialize)]
-struct DbusMessageRouting<'a>(String, String, String, Vec<DbusMessage<'a>>);
+#[derive(Serialize)]
+struct DbusMessageRouting(String, String, String, Vec<DbusMessage>);
 
-#[derive(Serialize, Deserialize)]
-struct ConfYaml<'a>(Vec<DbusMessageRouting<'a>>);
+#[derive(Serialize)]
+struct ConfYaml(Vec<DbusMessageRouting>);
 
-#[derive(Serialize, Deserialize)]
-struct ClientRequest<'a>(DbusMessageType, String, NamedArgs<'a>);
+#[derive(Serialize)]
+struct ClientRequest(DbusMessageType, String, NamedArgs);
 
-#[derive(Serialize, Deserialize)]
-struct ClientRequestBody<'a>(DbusMessageType, NamedArgs<'a>);
+#[derive(Serialize)]
+struct ClientRequestBody(DbusMessageType, NamedArgs);
 
 fn main()
 {
