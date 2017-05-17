@@ -57,6 +57,8 @@ struct ClientRequest<'a>(DbusMessageType, String, #[serde(borrow)] NamedArgs<'a>
 #[derive(Serialize, Deserialize)]
 struct ClientRequestBody<'a>(DbusMessageType, #[serde(borrow)] NamedArgs<'a>);
 
+type CRequest<'a> = HashMap<&'a str, ClientRequestBody<'a>>;
+
 fn main()
 {
     let conf = vec![
@@ -99,10 +101,15 @@ fn main()
                                 ].iter().cloned().collect()
                           );
 
-    let mut a_request = HashMap::new();
+    let mut a_request: CRequest = HashMap::new();
     a_request.insert("api_name", rb);
 
     let rsq = serde_json::to_string(&a_request).unwrap();
     println!("rsq : {}", rsq);
+
+    let de: CRequest = serde_json::from_str(&rsq).expect("json deserialization error");
+
+    let rsq2 = serde_json::to_string(&de).expect("json serialization error");
+    println!("rsq2 : {}", rsq2);
 
 }
