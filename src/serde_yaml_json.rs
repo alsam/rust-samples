@@ -52,7 +52,12 @@ struct DbusMessageRouting<'a>(String, String, String, #[serde(borrow)] Vec<DbusM
 struct ConfYaml<'a>(#[serde(borrow)] Vec<DbusMessageRouting<'a>>);
 
 #[derive(Serialize, Deserialize)]
-struct ClientRequest<'a>(DbusMessageType, String, #[serde(borrow)] NamedArgs<'a>);
+struct ClientRequest<'a> {
+    tp: DbusMessageType,
+    name: String,
+    #[serde(borrow)]
+    args: NamedArgs<'a>,
+}
 
 #[derive(Serialize, Deserialize)]
 struct ClientRequestBody<'a>(DbusMessageType, #[serde(borrow)] NamedArgs<'a>);
@@ -69,12 +74,12 @@ fn main()
             vec![ DbusMessage { api_name: "api_name".to_string(),
                                 dbus_name: "dbus_name".to_string(),
                                 message_type: DbusMessageType::Method,
-                                args: [ 
+                                args: [
                                     ("param1", ArgValue::Str("Hi".to_string())),
                                     ("param2", ArgValue::Bool(true)),
                                     ("param3", ArgValue::Int64(17i64)),
                                     ("param4", ArgValue::Double(2.718281828f64)),
-                                ].iter().cloned().collect() 
+                                ].iter().cloned().collect()
                               }
             ]
         )
@@ -83,21 +88,21 @@ fn main()
     let s = serde_yaml::to_string(&conf).unwrap();
     println!("s : {}", s);
 
-    let r = ClientRequest(DbusMessageType::Method, "api_name".to_string(), [
-                                        ("param1", ArgValue::Str("Hi".to_string())),            
-                                        ("param2", ArgValue::Bool(true)),            
-                                        ("param3", ArgValue::Int64(17i64)),            
-                                        ("param4", ArgValue::Double(2.718281828f64)),        
+    let r = ClientRequest { tp: DbusMessageType::Method, nm: "api_name".to_string(), args:
+                                [       ("param1", ArgValue::Str("Hi".to_string())),
+                                        ("param2", ArgValue::Bool(true)),
+                                        ("param3", ArgValue::Int64(17i64)),
+                                        ("param4", ArgValue::Double(2.718281828f64)),
                                 ].iter().cloned().collect()
-                          );
+                          };
     let rs = serde_json::to_string(&r).unwrap();
     println!("rs : {}", rs);
 
     let rb = ClientRequestBody(DbusMessageType::Method, [
-                                        ("param1", ArgValue::Str("Hi".to_string())),            
-                                        ("param2", ArgValue::Bool(true)),            
-                                        ("param3", ArgValue::Int64(17i64)),            
-                                        ("param4", ArgValue::Double(2.718281828f64)),        
+                                        ("param1", ArgValue::Str("Hi".to_string())),
+                                        ("param2", ArgValue::Bool(true)),
+                                        ("param3", ArgValue::Int64(17i64)),
+                                        ("param4", ArgValue::Double(2.718281828f64)),
                                 ].iter().cloned().collect()
                           );
 
