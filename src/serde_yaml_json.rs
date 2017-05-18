@@ -8,9 +8,8 @@ extern crate argparse;
 #[macro_use] extern crate from_variants;
 
 extern crate serde;
-extern crate serde_json;
+#[macro_use] extern crate serde_json;
 extern crate serde_yaml;
-
 #[macro_use] extern crate serde_derive;
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -28,13 +27,14 @@ enum ArgValue {
     Double(f64),
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 enum DbusMessageType {
     Method,
     Signal,
 }
 
 type NamedArgs<'a> = HashMap<&'a str, ArgValue>;
+type NamedArgs2<'a> = HashMap<&'a str, serde_json::value::Value>;
 
 #[derive(Serialize, Deserialize)]
 struct DbusMessage<'a> {
@@ -51,12 +51,13 @@ struct DbusMessageRouting<'a>(String, String, String, #[serde(borrow)] Vec<DbusM
 #[derive(Serialize, Deserialize)]
 struct ConfYaml<'a>(#[serde(borrow)] Vec<DbusMessageRouting<'a>>);
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 struct ClientRequest<'a> {
+    #[serde(rename = "type")]
     tp: DbusMessageType,
     name: String,
     #[serde(borrow)]
-    args: NamedArgs<'a>,
+    args: NamedArgs2<'a>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -88,15 +89,19 @@ fn main()
     let s = serde_yaml::to_string(&conf).unwrap();
     println!("s : {}", s);
 
-    let r = ClientRequest { tp: DbusMessageType::Method, nm: "api_name".to_string(), args:
-                                [       ("param1", ArgValue::Str("Hi".to_string())),
-                                        ("param2", ArgValue::Bool(true)),
-                                        ("param3", ArgValue::Int64(17i64)),
-                                        ("param4", ArgValue::Double(2.718281828f64)),
+    let r = ClientRequest { tp: DbusMessageType::Method, name: "api_name".to_string(), args:
+                                [       ("param1", json!("Hi")),
+                                        ("param2", json!(true)),
+                                        ("param3", json!(17i64)),
+                                        ("param4", json!(2.718281828f64)),
                                 ].iter().cloned().collect()
                           };
     let rs = serde_json::to_string(&r).unwrap();
     println!("rs : {}", rs);
+
+    let d: ClientRequest = serde_json::from_str(&rs).expect("json deserialization error");
+    println!("d: {:?}", d);
+
 
     let rb = ClientRequestBody(DbusMessageType::Method, [
                                         ("param1", ArgValue::Str("Hi".to_string())),
