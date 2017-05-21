@@ -12,7 +12,7 @@ extern crate serde;
 extern crate serde_yaml;
 #[macro_use] extern crate serde_derive;
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 enum ArgValue {
     None,
     Str(String),
@@ -25,6 +25,12 @@ enum ArgValue {
     UInt32(u32),
     UInt64(u64),
     Double(f64),
+}
+
+#[derive(Clone, Serialize, Deserialize, Debug)]
+enum ArgsTag {
+    Args,
+    Rets,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
