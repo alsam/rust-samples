@@ -61,7 +61,7 @@ struct ClientRequest {
     #[serde(rename = "type")]
     tp: DbusMessageType,
     name: String,
-    args: NamedArgs2,
+    args: Option<NamedArgs2>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -94,11 +94,11 @@ fn main()
     println!("s : {}", s);
 
     let r = ClientRequest { tp: DbusMessageType::Method, name: "api_name".to_string(),
-                            args: [     ("param1".to_string(), json!("Hi")),
-                                        ("param2".to_string(), json!(true)),
-                                        ("param3".to_string(), json!(17i64)),
-                                        ("param4".to_string(), json!(2.718281828f64)),
-                                ].iter().cloned().collect()
+                            args: Some([    ("param1".to_string(), json!("Hi")),
+                                            ("param2".to_string(), json!(true)),
+                                            ("param3".to_string(), json!(17i64)),
+                                            ("param4".to_string(), json!(2.718281828f64)),
+                                       ].iter().cloned().collect())
                           };
     let rs = serde_json::to_string(&r).unwrap();
     println!("rs : {}", rs);
