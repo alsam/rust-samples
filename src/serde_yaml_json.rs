@@ -27,6 +27,24 @@ enum ArgValue {
     Double(f64),
 }
 
+impl ArgValue {
+    fn to_json(&self, n: &str) -> String {
+        match *self {
+            ArgValue::None             =>   "".to_string(),
+            ArgValue::Str(ref v)       =>   format!("\"{}\":{}", n, v ),
+            ArgValue::Bool(ref v)      =>   format!("\"{}\":{}", n, v ),
+            ArgValue::Byte(ref v)      =>   format!("\"{}\":{}", n, v ),
+            ArgValue::Int16(ref v)     =>   format!("\"{}\":{}", n, v ),
+            ArgValue::Int32(ref v)     =>   format!("\"{}\":{}", n, v ),
+            ArgValue::Int64(ref v)     =>   format!("\"{}\":{}", n, v ),
+            ArgValue::UInt16(ref v)    =>   format!("\"{}\":{}", n, v ),
+            ArgValue::UInt32(ref v)    =>   format!("\"{}\":{}", n, v ),
+            ArgValue::UInt64(ref v)    =>   format!("\"{}\":{}", n, v ),
+            ArgValue::Double(ref v)    =>   format!("\"{}\":{}", n, v ),
+        }
+    }
+}
+
 #[derive(Clone, Serialize, Deserialize, Debug)]
 enum ArgsTag {
     Args,
@@ -62,6 +80,29 @@ struct ClientRequest {
     tp: DbusMessageType,
     name: String,
     args: Option<NamedArgs2>,
+    rets: Option<NamedArgs2>,
+}
+
+impl ClientRequest {
+    fn to_json(&self) -> String {
+        fn serialize_args_or_rets(tag: &str, ar: &Option<NamedArgs2>) -> String {
+            match ar {
+                &Some(ref a) => {
+                    let args_serialized: Vec<_> = a.iter().map( |ret| {
+                        let (n, val) = ret;
+                        //val.to_json(n)
+                        format!("\"{}\":{}", n, val)
+                        } ).collect();
+                    format!("\"{}\": {{ {}", tag, args_serialized.join(","))
+                },
+                &None =>  "".to_string(),
+            }
+        }
+        let json_reply_prefix = format!("{{\"type\":\"{:?}\",\"name\":\"{}\",", &self.tp, &self.name);
+        let args_serialized = serialize_args_or_rets("args", &self.args);
+        let rets_serialized = serialize_args_or_rets("rets", &self.rets);
+        format!("{}{}{} }} }}",json_reply_prefix, args_serialized, rets_serialized).to_string()
+    }
 }
 
 #[derive(Serialize, Deserialize)]
@@ -98,13 +139,19 @@ fn main()
                                             ("param2".to_string(), json!(true)),
                                             ("param3".to_string(), json!(17i64)),
                                             ("param4".to_string(), json!(2.718281828f64)),
-                                       ].iter().cloned().collect())
+                                       ].iter().cloned().collect()),
+                            rets: None,
                           };
     let rs = serde_json::to_string(&r).unwrap();
     println!("rs : {}", rs);
 
     let d: ClientRequest = serde_json::from_str(&rs).expect("json deserialization error");
     println!("d: {:?}", d);
+
+    let data = "{\"type\":\"Method\",\"name\":\"utest_4p2r\",\"rets\":{\"parm1\":71,\"parm2\":12.12 } }";
+    let d2: ClientRequest = serde_json::from_str(&data).expect("json deserialization error");
+    println!("d2: {:?}", d2);
+    println!("d2.to_json(): {}", d2.to_json());
 
 
     let rb = ClientRequestBody(DbusMessageType::Method, [
