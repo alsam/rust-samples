@@ -25,6 +25,8 @@ enum ArgValue {
     UInt32(u32),
     UInt64(u64),
     Double(f64),
+    Array(Vec<serde_json::value::Value>),
+    //Record(HashMap(String, ArgValue)),
 }
 
 impl ArgValue {
@@ -41,6 +43,7 @@ impl ArgValue {
             ArgValue::UInt32(ref v)    =>   format!("\"{}\":{}", n, v ),
             ArgValue::UInt64(ref v)    =>   format!("\"{}\":{}", n, v ),
             ArgValue::Double(ref v)    =>   format!("\"{}\":{}", n, v ),
+            ArgValue::Array(ref v)     =>   format!("\"{}\":{:?}", n, v ),
         }
     }
 }
@@ -125,6 +128,7 @@ fn main()
                                     ("param2".to_string(), ArgValue::Bool(true)),
                                     ("param3".to_string(), ArgValue::Int64(17i64)),
                                     ("param4".to_string(), ArgValue::Double(2.718281828f64)),
+                                    ("param5".to_string(), ArgValue::Array( vec![ json!(1.1), json!(2.2), json!(3.3), ] )),
                                 ].iter().cloned().collect()
                               }
             ]
@@ -139,6 +143,7 @@ fn main()
                                             ("param2".to_string(), json!(true)),
                                             ("param3".to_string(), json!(17i64)),
                                             ("param4".to_string(), json!(2.718281828f64)),
+                                            ("param5".to_string(), json!( vec![ json!(1.1), json!(2.2), json!(3.3), ] )),
                                        ].iter().cloned().collect()),
                             rets: None,
                           };
@@ -147,6 +152,9 @@ fn main()
 
     let d: ClientRequest = serde_json::from_str(&rs).expect("json deserialization error");
     println!("d: {:?}", d);
+
+    let ds = serde_json::to_string(&d).unwrap();
+    println!(" => ds: {}", ds);
 
     let data = "{\"type\":\"Method\",\"name\":\"utest_4p2r\",\"rets\":{\"parm1\":71,\"parm2\":12.12 } }";
     let d2: ClientRequest = serde_json::from_str(&data).expect("json deserialization error");
