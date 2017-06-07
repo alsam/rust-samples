@@ -64,32 +64,48 @@ impl FromVariant for String {
     }
 }
 
-impl FromVariant for bool {
-    fn from_variant(variant: &ArgValue) -> Option<Self> {
-        match *variant {
-            ArgValue::Bool(v) => Some(v),
-            _ => None
+macro_rules! from_variant_inst {
+    [$t: tt, $i: ident] => {
+        impl FromVariant for $t {
+            fn from_variant(variant: &ArgValue) -> Option<Self> {
+                match *variant {
+                    ArgValue::$i(v) => Some(v),
+                    _ => None
+                }
+            }
         }
-    }
+    };
 }
 
-impl FromVariant for u8 {
-    fn from_variant(variant: &ArgValue) -> Option<Self> {
-        match *variant {
-            ArgValue::Byte(v) => Some(v),
-            _ => None
-        }
-    }
-}
+from_variant_inst![bool, Bool];
+from_variant_inst![u8,   Byte];
+from_variant_inst![i16,  Int16];
+//impl FromVariant for bool {
+//    fn from_variant(variant: &ArgValue) -> Option<Self> {
+//        match *variant {
+//            ArgValue::Bool(v) => Some(v),
+//            _ => None
+//        }
+//    }
+//}
 
-impl FromVariant for i16 {
-    fn from_variant(variant: &ArgValue) -> Option<Self> {
-        match *variant {
-            ArgValue::Int16(v) => Some(v),
-            _ => None
-        }
-    }
-}
+//impl FromVariant for u8 {
+//    fn from_variant(variant: &ArgValue) -> Option<Self> {
+//        match *variant {
+//            ArgValue::Byte(v) => Some(v),
+//            _ => None
+//        }
+//    }
+//}
+//
+//impl FromVariant for i16 {
+//    fn from_variant(variant: &ArgValue) -> Option<Self> {
+//        match *variant {
+//            ArgValue::Int16(v) => Some(v),
+//            _ => None
+//        }
+//    }
+//}
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 enum ArgsTag {
