@@ -50,6 +50,47 @@ impl ArgValue {
     }
 }
 
+trait FromVariant: Sized {
+    fn from_variant(variant: &ArgValue) -> Option<Self>;
+}
+
+// TODO use macros
+impl FromVariant for String {
+    fn from_variant(variant: &ArgValue) -> Option<Self> {
+        match *variant {
+            ArgValue::Str(ref v) => Some((*v).clone()),
+            _ => None
+        }
+    }
+}
+
+impl FromVariant for bool {
+    fn from_variant(variant: &ArgValue) -> Option<Self> {
+        match *variant {
+            ArgValue::Bool(v) => Some(v),
+            _ => None
+        }
+    }
+}
+
+impl FromVariant for u8 {
+    fn from_variant(variant: &ArgValue) -> Option<Self> {
+        match *variant {
+            ArgValue::Byte(v) => Some(v),
+            _ => None
+        }
+    }
+}
+
+impl FromVariant for i16 {
+    fn from_variant(variant: &ArgValue) -> Option<Self> {
+        match *variant {
+            ArgValue::Int16(v) => Some(v),
+            _ => None
+        }
+    }
+}
+
 #[derive(Clone, Serialize, Deserialize, Debug)]
 enum ArgsTag {
     Args,
