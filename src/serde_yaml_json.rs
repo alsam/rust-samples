@@ -1,6 +1,7 @@
 // https://github.com/serde-rs/serde/issues/927
 
 use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 extern crate yaml_rust;
 extern crate argparse;
@@ -25,8 +26,8 @@ enum ArgValue {
     UInt32(u32),
     UInt64(u64),
     Double(f64),
-    Array(Vec<serde_json::value::Value>),
-    //Record(HashMap(String, ArgValue)),
+    Array(Vec<ArgValue>),
+    Hash(BTreeMap<String, ArgValue>),
 }
 
 impl ArgValue {
@@ -44,6 +45,7 @@ impl ArgValue {
             ArgValue::UInt64(ref v)    =>   format!("\"{}\":{}", n, v ),
             ArgValue::Double(ref v)    =>   format!("\"{}\":{}", n, v ),
             ArgValue::Array(ref v)     =>   format!("\"{}\":{:?}", n, v ),
+            ArgValue::Hash(ref v)      =>   format!("\"{}\":{:?}", n, v ),
         }
     }
 }
@@ -128,7 +130,7 @@ fn main()
                                     ("param2".to_string(), ArgValue::Bool(true)),
                                     ("param3".to_string(), ArgValue::Int64(17i64)),
                                     ("param4".to_string(), ArgValue::Double(2.718281828f64)),
-                                    ("param5".to_string(), ArgValue::Array( vec![ json!(1.1), json!(2.2), json!(3.3), ] )),
+                                    ("param5".to_string(), ArgValue::Array( vec![ArgValue::Double (1.1), ArgValue::Double(2.2), ArgValue::Double(3.3), ] )),
                                 ].iter().cloned().collect()
                               }
             ]
