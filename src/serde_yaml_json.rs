@@ -103,6 +103,9 @@ from_variant_inst![u32,  UInt32];
 from_variant_inst![u64,  UInt64];
 from_variant_inst![f64,  Double];
 
+
+
+
 #[derive(Clone, Serialize, Deserialize, Debug)]
 enum ArgsTag {
     Args,
@@ -249,7 +252,9 @@ fn main()
 
     let arr2 = ArgValue::Array( vec![ArgValue::Array(vec![ArgValue::Double(1.1), ArgValue::Double(2.2)]),
                                      ArgValue::Array(vec![ArgValue::Double(3.3), ArgValue::Double(4.4)]) ] );
-    let from_arr2_variant: Vec<Vec<f64>> = FromVariant::from_variant(&arr2).expect("array of array expected");
+    // typeof is reserved keyword but there is no support 
+    let mut from_arr2_variant = Vec::<Vec<f64>>::new();
+    from_arr2_variant = FromVariant::from_variant(&arr2).expect("array of array expected");
 
     println!("arr2: {:?} from_arr2_variant: {:?}", arr2, from_arr2_variant);
 
