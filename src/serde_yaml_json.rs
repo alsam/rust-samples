@@ -54,11 +54,27 @@ trait FromVariant: Sized {
     fn from_variant(variant: &ArgValue) -> Option<Self>;
 }
 
-// TODO use macros
+// String, Array, Hash differ, for all other variants use macros
 impl FromVariant for String {
     fn from_variant(variant: &ArgValue) -> Option<Self> {
         match *variant {
             ArgValue::Str(ref v) => Some((*v).clone()),
+            _ => None
+        }
+    }
+}
+
+impl<T> FromVariant for Vec<T> where T: FromVariant {
+    fn from_variant(variant: &ArgValue) -> Option<Self> {
+        match *variant {
+            ArgValue::Array(ref v) => {
+                let mut ret = Vec::<T>::new();
+                for el in v {
+                    let val: T = FromVariant::from_variant(&el).expect("type mismatch");
+                    ret.push(val);
+                }
+                Some(ret)
+            }
             _ => None
         }
     }
@@ -80,32 +96,12 @@ macro_rules! from_variant_inst {
 from_variant_inst![bool, Bool];
 from_variant_inst![u8,   Byte];
 from_variant_inst![i16,  Int16];
-//impl FromVariant for bool {
-//    fn from_variant(variant: &ArgValue) -> Option<Self> {
-//        match *variant {
-//            ArgValue::Bool(v) => Some(v),
-//            _ => None
-//        }
-//    }
-//}
-
-//impl FromVariant for u8 {
-//    fn from_variant(variant: &ArgValue) -> Option<Self> {
-//        match *variant {
-//            ArgValue::Byte(v) => Some(v),
-//            _ => None
-//        }
-//    }
-//}
-//
-//impl FromVariant for i16 {
-//    fn from_variant(variant: &ArgValue) -> Option<Self> {
-//        match *variant {
-//            ArgValue::Int16(v) => Some(v),
-//            _ => None
-//        }
-//    }
-//}
+from_variant_inst![i32,  Int32];
+from_variant_inst![i64,  Int64];
+from_variant_inst![u16,  UInt16];
+from_variant_inst![u32,  UInt32];
+from_variant_inst![u64,  UInt64];
+from_variant_inst![f64,  Double];
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 enum ArgsTag {
@@ -245,4 +241,15 @@ fn main()
     }
     println!("key[0] : {}", de.keys().nth(0).unwrap());
 
+    let arr = ArgValue:: Array( vec![ArgValue::Double (1.1), ArgValue::Double(2.2), ArgValue::Double(3.3),] );
+
+    let from_arr_variant: Vec<f64> = FromVariant::from_variant(&arr).expect("array expected");
+
+    println!("arr: {:?} from_arr_variant: {:?}", arr, from_arr_variant);
+
+    let bad_arr = ArgValue:: Array( vec![ArgValue::Double (1.1), ArgValue::Int32(2), ArgValue::Double(3.3),] );
+    println!("bad_arr: {:?}", bad_arr);
+
+    // expect here runtime error `thread 'main' panicked at 'type mismatch',`
+    let from_bad_arr_variant: Vec<f64> = FromVariant::from_variant(&bad_arr).expect("array expected");
 }
