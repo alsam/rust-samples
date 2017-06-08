@@ -183,7 +183,7 @@ fn main()
                                     ("param2".to_string(), ArgValue::Bool(true)),
                                     ("param3".to_string(), ArgValue::Int64(17i64)),
                                     ("param4".to_string(), ArgValue::Double(2.718281828f64)),
-                                    ("param5".to_string(), ArgValue::Array( vec![ArgValue::Double (1.1), ArgValue::Double(2.2), ArgValue::Double(3.3), ] )),
+                                    ("param5".to_string(), ArgValue::Array( vec![ArgValue::Double(1.1), ArgValue::Double(2.2), ArgValue::Double(3.3), ] )),
                                 ].iter().cloned().collect()
                               }
             ]
@@ -241,13 +241,19 @@ fn main()
     }
     println!("key[0] : {}", de.keys().nth(0).unwrap());
 
-    let arr = ArgValue:: Array( vec![ArgValue::Double (1.1), ArgValue::Double(2.2), ArgValue::Double(3.3),] );
+    let arr = ArgValue:: Array( vec![ArgValue::Double(1.1), ArgValue::Double(2.2), ArgValue::Double(3.3),] );
 
     let from_arr_variant: Vec<f64> = FromVariant::from_variant(&arr).expect("array expected");
 
     println!("arr: {:?} from_arr_variant: {:?}", arr, from_arr_variant);
 
-    let bad_arr = ArgValue:: Array( vec![ArgValue::Double (1.1), ArgValue::Int32(2), ArgValue::Double(3.3),] );
+    let arr2 = ArgValue::Array( vec![ArgValue::Array(vec![ArgValue::Double(1.1), ArgValue::Double(2.2)]),
+                                     ArgValue::Array(vec![ArgValue::Double(3.3), ArgValue::Double(4.4)]) ] );
+    let from_arr2_variant: Vec<Vec<f64>> = FromVariant::from_variant(&arr2).expect("array of array expected");
+
+    println!("arr2: {:?} from_arr2_variant: {:?}", arr2, from_arr2_variant);
+
+    let bad_arr = ArgValue:: Array( vec![ArgValue::Double(1.1), ArgValue::Int32(2), ArgValue::Double(3.3),] );
     println!("bad_arr: {:?}", bad_arr);
 
     // expect here runtime error `thread 'main' panicked at 'type mismatch',`
