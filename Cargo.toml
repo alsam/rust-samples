@@ -13,6 +13,8 @@ libc = "*"
 rand = "*"
 docopt = "*"
 #docopt_macros = "*"
+structopt = "*"
+structopt-derive = "*"
 rustc-serialize = "*"
 endianness = "*"
 argparse = "*"
@@ -31,10 +33,10 @@ indoc = "^0.1"
 unindent = "*"
 integration =  { git = "https://github.com/photino/integration.git" }
 
-serde = "1.0"
-serde_json = "1.0"
-serde_yaml = "*"
-serde_derive = "1.0"
+serde = "^1.0"
+serde_json = "^1.0"
+serde_yaml = "^0.7"
+serde_derive = "^1.0"
 ws = "*"
 log = "*"
 yaml-rust = "*"
@@ -92,9 +94,9 @@ path = "src/union.rs"
 name = "jinc"
 path = "src/jinc.rs"
 
-#[[bin]]
-#name = "adt_enum"
-#path = "src/adt_enum.rs"
+[[bin]]
+name = "adt_enum"
+path = "src/adt_enum_structopt.rs"
 
 [[bin]]
 name = "tiny"
