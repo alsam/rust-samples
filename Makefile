@@ -69,6 +69,10 @@ generics:
 union:
 	RUST_BACKTRACE=1 cargo run --bin union
 
+adt_enum:
+	cargo run --bin adt_enum -- mask_after_biasing_number17_bias_-2.000000_grid.bin -d data/grid/
+	asy -f pdf mask_after_biasing_number17_bias_-2.000000_grid.bin.asy
+
 af_hi:
 	cargo run --bin af_hi
 
