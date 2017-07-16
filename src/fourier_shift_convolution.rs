@@ -15,8 +15,10 @@ fn main() {
     let plani = Plan::new(dft::Operation::Inverse, size);
     let mut a = Vec::from_iter((0..size).map(|idx| c64::new((idx + 1) as f64, 0.0)));
     let mut kernel = Vec::from_iter((0..size).map(|idx| {
-        c64::new((2.0 * PI * 3.0 * (idx as f64) / (size as f64)).cos(),
-                 (2.0 * PI * 3.0 * (idx as f64) / (size as f64)).sin())
+        c64::new(
+            (2.0 * PI * 3.0 * (idx as f64) / (size as f64)).cos(),
+            (2.0 * PI * 3.0 * (idx as f64) / (size as f64)).sin(),
+        )
     }));
     println!("a: {:?}, kernel: {:?}", a, kernel);
 
@@ -63,7 +65,9 @@ fn main() {
     let mut int_values = Vec::from_iter((0..size).map(|idx| idx + 1));
     let cta_grid = Dim4::new(&[size as u64, 1, 1, 1]);
     let af = Array::new(
-        &Vec::from_iter(int_values.iter().map (|&i| c64::new(i as f64, 0.0) ) ), cta_grid );
+        &Vec::from_iter(int_values.iter().map(|&i| c64::new(i as f64, 0.0))),
+        cta_grid,
+    );
 
     println!("the constructed array has {} elements", af.elements());
     print(&af);

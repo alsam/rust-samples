@@ -73,9 +73,9 @@ struct Options {
 
 fn min_dx(x: &[f64]) -> f64 {
     // https://doc.rust-lang.org/std/primitive.slice.html#method.windows
-    let tdx = Tensor::new( x.windows(2) // iterator for adjacent pairs of a slice
+    let tdx = Tensor::new(x.windows(2) // iterator for adjacent pairs of a slice
                             .map(|w| w[1]-w[0]) // i.e. [x[0], x[1]], [x[1], x[2]] ...
-                            .collect() );
+                            .collect());
     // fortunately `Tensor` has `min()`
     // `Vec` doesn't have so forced to use `fold` for it
     tdx.min()
@@ -87,106 +87,148 @@ fn test_min_dx() {
     use std::cmp::Ordering;
 
     fn sub<T: Num + Copy>(lhs: &[T], rhs: &[T]) -> Vec<T> {
-        Vec::from_iter (lhs.iter().zip(rhs.iter()) .map(|(&x,&y)| x - y ) )
+        Vec::from_iter(lhs.iter().zip(rhs.iter()).map(|(&x, &y)| x - y))
     }
 
     // 1. prepare non-equidistant vector `x`
     let base_dx = std::f64::consts::FRAC_PI_4; // 0.785398
-    let mut x = Vec::from_iter ((1..7) .map(|idx| ((idx as f64).sin() * base_dx).cos().abs() ) );
+    let mut x = Vec::from_iter((1..7).map(|idx| ((idx as f64).sin() * base_dx).cos().abs()));
 
-    x.sort_by(|&x, &y|
-        if      x < y { Ordering::Less }
-        else if x > y { Ordering::Greater }
-        else { Ordering::Equal } );
+    x.sort_by(|&x, &y| if x < y {
+        Ordering::Less
+    } else if x > y {
+        Ordering::Greater
+    } else {
+        Ordering::Equal
+    });
 
-    let delta_x = sub(&x, &[0.7295467223444416, 0.7556433468867207, 0.7894463883160331,
-                            0.8284895327495356, 0.9760168013869176, 0.9938640428738624]);
+    let delta_x = sub(
+        &x,
+        &[
+            0.7295467223444416,
+            0.7556433468867207,
+            0.7894463883160331,
+            0.8284895327495356,
+            0.9760168013869176,
+            0.9938640428738624,
+        ],
+    );
 
-    let inf_norm = delta_x .iter() .fold(delta_x[0].abs(), |x1, x2| (x1).max((*x2).abs()));
+    let inf_norm = delta_x.iter().fold(
+        delta_x[0].abs(),
+        |x1, x2| (x1).max((*x2).abs()),
+    );
 
     assert!(inf_norm < 1e-10, "inf_norm");
 
     // classical way
     let mut min_dx1 = std::f64::MAX;
-    for i in 0 .. x.len()-1 {
-        min_dx1 = min_dx1.min(x[i+1]-x[i]);
+    for i in 0..x.len() - 1 {
+        min_dx1 = min_dx1.min(x[i + 1] - x[i]);
     }
 
     // functional way
     let min_dx2 = min_dx(&x);
     let abs_delta = (min_dx1 - min_dx2).abs();
-    println!("abs_delta : {} min_dx1 : {} min_dx2 : {} x : {:?}", abs_delta, min_dx1, min_dx2, x);
+    println!(
+        "abs_delta : {} min_dx1 : {} min_dx2 : {} x : {:?}",
+        abs_delta,
+        min_dx1,
+        min_dx2,
+        x
+    );
     assert!(abs_delta < 1e-10, "min_dx");
 }
 
-fn do_computation(nsteps: usize, ncells: usize, tmax: f64, ifirst: usize, ilast: usize,
-                  statelft: f64, statergt: f64, velocity: f64, dt: f64,
-                  fc: usize, lc: usize, x: &Tensor<f64>, u: &mut Tensor<f64>)
-{
-    let mut istep   =   0;
-    let mut t       =   0.0f64;
-    let mut flux    =   tensor![0.0f64; x.dim(0)];
+fn do_computation(
+    nsteps: usize,
+    ncells: usize,
+    tmax: f64,
+    ifirst: usize,
+    ilast: usize,
+    statelft: f64,
+    statergt: f64,
+    velocity: f64,
+    dt: f64,
+    fc: usize,
+    lc: usize,
+    x: &Tensor<f64>,
+    u: &mut Tensor<f64>,
+) {
+    let mut istep = 0;
+    let mut t = 0.0f64;
+    let mut flux = tensor![0.0f64; x.dim(0)];
 
     // loop over timesteps
-    let rbc = u[(ncells+1,)];
+    let rbc = u[(ncells + 1,)];
     let rslice = tensor![rbc; fc];
     let lslice = tensor![statelft; fc];
-    let rindex = [AxisIndex::StridedSlice(Some((ncells+2) as isize), None, 1)];
+    let rindex = [
+        AxisIndex::StridedSlice(Some((ncells + 2) as isize), None, 1),
+    ];
     let lindex = [AxisIndex::StridedSlice(None, Some(fc as isize), 1)];
     while istep < nsteps && t < tmax {
 
         // right boundary condition: outgoing wave
-        u.index_set( &rindex, &rslice );
+        u.index_set(&rindex, &rslice);
         //for ic in ncells .. lc {
         //    u[ic]=u[ncells-1];
         //}
         // left boundary condition: specified value
-        u.index_set( &lindex, &lslice );
+        u.index_set(&lindex, &lslice);
         //for ic in 0 .. fc {
         //    u[ic]=statelft;
         //}
 
         // upwind fluxes times dt (ie, flux time integral over cell side)
         // assumes velocity > 0
-        let vdt=velocity*dt;
-        for ie in ifirst .. ilast+1 {
-            flux[(ie,)]=vdt*u[(ie+1,)];
+        let vdt = velocity * dt;
+        for ie in ifirst..ilast + 1 {
+            flux[(ie,)] = vdt * u[(ie + 1,)];
         }
 
         // conservative difference
-        for ic in ifirst .. ilast {
-            u[(ic+2,)] -= (flux[(ic+1,)]-flux[(ic,)]) / (x[(ic+1,)]-x[(ic,)])
+        for ic in ifirst..ilast {
+            u[(ic + 2,)] -= (flux[(ic + 1,)] - flux[(ic,)]) / (x[(ic + 1,)] - x[(ic,)])
         }
 
         // update time and step number
-        t       +=  dt;
-        istep   +=  1
+        t += dt;
+        istep += 1
     }
 }
 
 fn main() {
     let mut options = Options {
-        verbose:   false,
+        verbose: false,
         num_steps: 2000,
         num_cells: 2000,
-        num_runs:  10,
+        num_runs: 10,
     };
 
     {
         let mut ap = ArgumentParser::new();
         ap.set_description("Time elapsing of model PDE for scalar conservation law.");
-        ap.refer(&mut options.verbose)
-            .add_option(&["-v", "--verbose"], StoreTrue,
-            "set verbose");
-        ap.refer(&mut options.num_steps)
-            .add_option(&["-t", "--num_steps"], Store,
-            "set number of time steps");
-        ap.refer(&mut options.num_cells)
-            .add_option(&["-n", "--num_cells"], Store,
-            "set number of grid cells");
-        ap.refer(&mut options.num_runs)
-            .add_option(&["-b", "--num_runs"], Store,
-            "set number of runs");
+        ap.refer(&mut options.verbose).add_option(
+            &["-v", "--verbose"],
+            StoreTrue,
+            "set verbose",
+        );
+        ap.refer(&mut options.num_steps).add_option(
+            &["-t", "--num_steps"],
+            Store,
+            "set number of time steps",
+        );
+        ap.refer(&mut options.num_cells).add_option(
+            &["-n", "--num_cells"],
+            Store,
+            "set number of grid cells",
+        );
+        ap.refer(&mut options.num_runs).add_option(
+            &["-b", "--num_runs"],
+            Store,
+            "set number of runs",
+        );
         match ap.parse_args() {
             Ok(()) => {}
             Err(x) => {
@@ -196,28 +238,32 @@ fn main() {
     }
 
     if options.verbose {
-        println!("number of time steps : {} number of grid cells : {} number of runs : {}",
-                 options.num_steps, options.num_cells, options.num_runs);
+        println!(
+            "number of time steps : {} number of grid cells : {} number of runs : {}",
+            options.num_steps,
+            options.num_cells,
+            options.num_runs
+        );
     }
 
     // problem-specific parameters:
-    const JUMP     : f64   =  0.0f64;
-    const X_LEFT   : f64   = -0.2f64;
-    const X_RIGHT  : f64   =  1.0f64;
-    const STATELFT : f64   =  2.0f64;
-    const STATERGT : f64   =  0.0f64;
-    const VELOCITY : f64   =  1.0f64;
+    const JUMP: f64 = 0.0f64;
+    const X_LEFT: f64 = -0.2f64;
+    const X_RIGHT: f64 = 1.0f64;
+    const STATELFT: f64 = 2.0f64;
+    const STATERGT: f64 = 0.0f64;
+    const VELOCITY: f64 = 1.0f64;
 
-    const TMAX     : f64   =  0.8f64;
-    const CFL      : f64   =  0.9f64;
+    const TMAX: f64 = 0.8f64;
+    const CFL: f64 = 0.9f64;
 
     // array bounds:
-    let   nsteps           = options.num_steps;
-    let   ncells           = options.num_cells;
-    const FC       : usize = 2;
-    let   lc               = ncells+2;
-    const IFIRST   : usize = 1;
-    let   ilast            = ncells-1;
+    let nsteps = options.num_steps;
+    let ncells = options.num_cells;
+    const FC: usize = 2;
+    let lc = ncells + 2;
+    const IFIRST: usize = 1;
+    let ilast = ncells - 1;
 
     // work arrays
     // #   double precision
@@ -225,54 +271,74 @@ fn main() {
     // #  &  x(0:ncells),
     // #  &  flux(0:ncells)
 
-    let mut u    = tensor![0.0f64; ncells+4];
-    let mut x    = tensor![0.0f64; ncells+1];
+    let mut u = tensor![0.0f64; ncells+4];
+    let mut x = tensor![0.0f64; ncells+1];
 
     //  uniform mesh:
-    let dx = (X_RIGHT-X_LEFT) / ncells as f64;
-    for ie in IFIRST .. ilast+1 {
+    let dx = (X_RIGHT - X_LEFT) / ncells as f64;
+    for ie in IFIRST..ilast + 1 {
         x[(ie,)] = X_LEFT + ie as f64 * dx;
     }
 
     // initial values for diffential equation:
-    let ijump = cmp::max(IFIRST as isize -1,
-                         cmp::min((ncells as f64 * (JUMP-X_LEFT)/(X_RIGHT-X_LEFT) + 0.5) as isize,
-                                  (ilast+1) as isize)) as usize;
+    let ijump = cmp::max(
+        IFIRST as isize - 1,
+        cmp::min(
+            (ncells as f64 * (JUMP - X_LEFT) / (X_RIGHT - X_LEFT) + 0.5) as isize,
+            (ilast + 1) as isize,
+        ),
+    ) as usize;
     if options.verbose {
         println!("ijump : {}", ijump);
     }
 
     // stable timestep (independent of time for linear advection):
     let mindx = min_dx(&x.data());
-    let dt = CFL*mindx/VELOCITY.abs();
+    let dt = CFL * mindx / VELOCITY.abs();
 
     //let d = Duration::span(||{
     let timer = std::time::Instant::now();
-        for r in 0..options.num_runs {
-            if options.verbose {
-                println!("run number : {}", r);
-            }
-
-            // left state to left of jump
-            for ic in IFIRST .. ijump-1 {
-                u[(ic+2,)] = STATELFT;
-            }
-
-            // volume-weighted average in cell containing jump
-            let frac = (JUMP-X_LEFT-ijump as f64 *dx)/(X_RIGHT-X_LEFT);
-            u[(ijump+2,)] = STATELFT*frac+STATERGT*(1.0f64-frac);
-
-            // right state to right of jump
-            for ic in ijump+1 .. ilast {
-                u[(ic+2,)]=STATERGT;
-            }
-
-            do_computation(nsteps, ncells, TMAX, IFIRST, ilast,
-                           STATELFT, STATERGT, VELOCITY, dt, FC, lc, &x, &mut u);
+    for r in 0..options.num_runs {
+        if options.verbose {
+            println!("run number : {}", r);
         }
+
+        // left state to left of jump
+        for ic in IFIRST..ijump - 1 {
+            u[(ic + 2,)] = STATELFT;
+        }
+
+        // volume-weighted average in cell containing jump
+        let frac = (JUMP - X_LEFT - ijump as f64 * dx) / (X_RIGHT - X_LEFT);
+        u[(ijump + 2,)] = STATELFT * frac + STATERGT * (1.0f64 - frac);
+
+        // right state to right of jump
+        for ic in ijump + 1..ilast {
+            u[(ic + 2,)] = STATERGT;
+        }
+
+        do_computation(
+            nsteps,
+            ncells,
+            TMAX,
+            IFIRST,
+            ilast,
+            STATELFT,
+            STATERGT,
+            VELOCITY,
+            dt,
+            FC,
+            lc,
+            &x,
+            &mut u,
+        );
+    }
     //});
     //println!("elapsed time: {:?}s.", timer.elapsed());
     let d = timer.elapsed();
-    println!("elapsed time: {:.2}s.", d.as_secs() as f64 + d.subsec_nanos() as f64 / 1.0e9f64);
+    println!(
+        "elapsed time: {:.2}s.",
+        d.as_secs() as f64 + d.subsec_nanos() as f64 / 1.0e9f64
+    );
 
 }

@@ -49,7 +49,7 @@ fn main() {
     let mut vec2 = vec![vec![0; 7]; 7];
 
     // how to create a ragged array
-    let v = Vec::from_iter ((0..10) .map (|idx| vec![idx; idx * 2]));
+    let v = Vec::from_iter((0..10).map(|idx| vec![idx; idx * 2]));
     println!("v.len(): {} v[1].len(): {}", v.len(), v[1].len());
     println!("v: {:?}", v);
     // prints
@@ -64,22 +64,25 @@ fn main() {
 
     // fill a non-equidistant array
     let dx = std::f64::consts::FRAC_PI_4; // 0.785398
-    let mut x = Vec::from_iter ((1..7) .map(|idx| ((idx as f64).sin() * dx).cos().abs() ) );
+    let mut x = Vec::from_iter((1..7).map(|idx| ((idx as f64).sin() * dx).cos().abs()));
     println!("x: {:?}", x);
 
     // x.sort(); // error: the trait `core::cmp::Ord` is not implemented for the type `f64` [E0277]
-    x.sort_by(|&x,&y|
-        if      x < y { Ordering::Less }
-        else if x > y { Ordering::Greater }
-        else { Ordering::Equal } );
+    x.sort_by(|&x, &y| if x < y {
+        Ordering::Less
+    } else if x > y {
+        Ordering::Greater
+    } else {
+        Ordering::Equal
+    });
 
     println!("ordered x: {:?}", x);
 
-    let dxv = Vec::from_iter ((0..x.len()-1) .map(|idx| (x[idx+1]-x[idx])));
+    let dxv = Vec::from_iter((0..x.len() - 1).map(|idx| (x[idx + 1] - x[idx])));
 
     println!("dxv: {:?}", dxv);
 
-    let dxv1 = Vec::from_iter (x.windows(2) .map(|w| (w[1]-w[0])));
+    let dxv1 = Vec::from_iter(x.windows(2).map(|w| (w[1] - w[0])));
 
     println!("dxv1: {:?}", dxv);
 
@@ -90,35 +93,50 @@ fn main() {
     println!("dx = {}", dx);
 
     // put it together
-    let dx1 = (x.windows(2) .map(|w| (w[1]-w[0]))) .fold(std::f64::MAX, |x1, x2| x1.min(x2));
+    let dx1 = (x.windows(2).map(|w| (w[1] - w[0]))).fold(std::f64::MAX, |x1, x2| x1.min(x2));
     println!("dx1 = {}", dx1);
 
     fn sub<T: Num + Copy>(lhs: &[T], rhs: &[T]) -> Vec<T> {
-        Vec::from_iter (lhs.iter().zip(rhs.iter()) .map(|(&x,&y)| x.sub(y) ) )
+        Vec::from_iter(lhs.iter().zip(rhs.iter()).map(|(&x, &y)| x.sub(y)))
     }
 
-    let delta_x = sub( &[0.07295467223444416, 0.07556433468867207, 0.07894463883160331,
-                         0.08284895327495356, 0.09760168013869176, 0.09938640428738624], &x);
+    let delta_x = sub(
+        &[
+            0.07295467223444416,
+            0.07556433468867207,
+            0.07894463883160331,
+            0.08284895327495356,
+            0.09760168013869176,
+            0.09938640428738624,
+        ],
+        &x,
+    );
 
-    println!("delta_x: {:?}",delta_x);
+    println!("delta_x: {:?}", delta_x);
 
-    let inf_norm =  delta_x .iter() .fold(delta_x[0].abs(), |x1, x2| (x1).max((*x2).abs()));
+    let inf_norm = delta_x.iter().fold(
+        delta_x[0].abs(),
+        |x1, x2| (x1).max((*x2).abs()),
+    );
     println!("inf_norm : {}", inf_norm);
 
-    fn infinity_norm<T: Signed+PartialOrd>(v: &[T]) -> T {
-        let norm = v.iter()
-                    .map(|x| 
-                         (*x).abs())
-                    .fold( num::zero(),
-                           |x1, x2| if x1 > x2 { x1 } else { x2 } );
+    fn infinity_norm<T: Signed + PartialOrd>(v: &[T]) -> T {
+        let norm = v.iter().map(|x| (*x).abs()).fold(
+            num::zero(),
+            |x1, x2| if x1 > x2 {
+                x1
+            } else {
+                x2
+            },
+        );
         norm
     }
 
     println!("infinity_norm : {}", infinity_norm(&delta_x));
 
 
-    let mut a = Tensor::new( x.windows(2) .map(|w| (w[1]-w[0])) .collect() );
-    println!("tensor a: {}",a);
+    let mut a = Tensor::new(x.windows(2).map(|w| (w[1] - w[0])).collect());
+    println!("tensor a: {}", a);
     let dx2 = a.min();
     println!("dx2: {}", dx2);
 
@@ -134,18 +152,30 @@ fn main() {
 
     let c = a - b;
     //let c = &tensor![1.0, 2.0, 3.0] - &tensor![4.0, 5.0, 6.0];
-    println!("c: {}",c);
+    println!("c: {}", c);
 
-    let tx = Tensor::new( x.clone() );
+    let tx = Tensor::new(x.clone());
 
-    let x_slice1 = &x[ 1..2 ];
-    let x_slice2 = &x[ 2..3 ];
+    let x_slice1 = &x[1..2];
+    let x_slice2 = &x[2..3];
 
     let diff = sub(x_slice1, x_slice2);
-    println!("x: {:?} x_slice1: {:?} x_slice2: {:?} diff: {:?}", x, x_slice1, x_slice2, diff);
-    let tensor_slice1 = tx.index( &[AxisIndex::StridedSlice(Some(1), Some(2), 1)] );
-    let tensor_slice2 = tx.index( &[AxisIndex::StridedSlice(Some(2), Some(3), 1)] );
+    println!(
+        "x: {:?} x_slice1: {:?} x_slice2: {:?} diff: {:?}",
+        x,
+        x_slice1,
+        x_slice2,
+        diff
+    );
+    let tensor_slice1 = tx.index(&[AxisIndex::StridedSlice(Some(1), Some(2), 1)]);
+    let tensor_slice2 = tx.index(&[AxisIndex::StridedSlice(Some(2), Some(3), 1)]);
     // `Tensor` has operator overloading
-    let tensor_diff   = &tensor_slice1 - &tensor_slice2;
-    println!("x: {:?} tensor_slice1: {} tensor_slice2: {} tensor_diff: {}", x, tensor_slice1, tensor_slice2, tensor_diff);
+    let tensor_diff = &tensor_slice1 - &tensor_slice2;
+    println!(
+        "x: {:?} tensor_slice1: {} tensor_slice2: {} tensor_diff: {}",
+        x,
+        tensor_slice1,
+        tensor_slice2,
+        tensor_diff
+    );
 }

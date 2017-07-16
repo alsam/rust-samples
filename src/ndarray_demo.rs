@@ -9,7 +9,9 @@ use ndarray::{
     ArrayView,
     ArrayViewMut,
     Array,
+    ArrayD,
     Ix,
+    IxDyn,
 };
 
 type Ix2 = (Ix, Ix);
@@ -25,4 +27,13 @@ fn main() {
     }
     println!("{:3}", a);
 
+    // an array with the dynamic dimension type
+    let mut b: ArrayD<f64>;
+    // 5 × 6 × 3 × 4 array using the dynamic dimension type
+    b = ArrayD::<f64>::zeros(IxDyn(&[5, 6, 3, 4]));
+    b[[1, 2, 1, 2]] = 42.;
+    println!("b: {:?}", b);
+    // reshape to 30 × 3 × 4 array
+    let c = b.into_shape((30, 3, 4)).clone();
+    println!("reshaped b: {:?}", c);
 }

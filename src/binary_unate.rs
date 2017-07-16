@@ -45,46 +45,78 @@ enum TriLogic {
     DontCare = 0b11,
 }
 
-type CubeList =  LinkedList<Vec<TriLogic>>;
+type CubeList = LinkedList<Vec<TriLogic>>;
 
 fn cubelist_contains_all_dont_cares_cube(F: &CubeList) -> bool {
     // `any` of the cubes contains `all` dont cares
-    F.iter().any(|c: &Vec<TriLogic>| ((*c).iter().all(|t: &TriLogic| *t == TriLogic::DontCare)))
+    F.iter().any(|c: &Vec<TriLogic>| {
+        ((*c).iter().all(|t: &TriLogic| *t == TriLogic::DontCare))
+    })
 }
 
 #[test]
 fn test_contains_all_dont_cares_cube() {
-    assert!(!cubelist_contains_all_dont_cares_cube(&LinkedList::from_iter(vec![])),
-            "case0: empty cubelist");
-    assert!(!cubelist_contains_all_dont_cares_cube(
-            &LinkedList::from_iter(vec![vec![TriLogic::True, TriLogic::DontCare, TriLogic::DontCare]])),
-            "case1: [[True, DontCare, DontCare]]");
-    assert!( cubelist_contains_all_dont_cares_cube(
-            &LinkedList::from_iter(vec![vec![TriLogic::DontCare, TriLogic::DontCare, TriLogic::DontCare],
-                                        vec![TriLogic::True,     TriLogic::False,    TriLogic::DontCare]])),
-            "case2: [[DontCare, ...]]");
+    assert!(
+        !cubelist_contains_all_dont_cares_cube(&LinkedList::from_iter(vec![])),
+        "case0: empty cubelist"
+    );
+    assert!(
+        !cubelist_contains_all_dont_cares_cube(&LinkedList::from_iter(vec![
+            vec![
+                TriLogic::True,
+                TriLogic::DontCare,
+                TriLogic::DontCare,
+            ],
+        ])),
+        "case1: [[True, DontCare, DontCare]]"
+    );
+    assert!(
+        cubelist_contains_all_dont_cares_cube(&LinkedList::from_iter(vec![
+            vec![
+                TriLogic::DontCare,
+                TriLogic::DontCare,
+                TriLogic::DontCare,
+            ],
+            vec![
+                TriLogic::True,
+                TriLogic::False,
+                TriLogic::DontCare,
+            ],
+        ])),
+        "case2: [[DontCare, ...]]"
+    );
 }
 
 fn count_all_dont_cares(cube: &[TriLogic]) -> usize {
-    (*cube).iter().filter(|term| **term == TriLogic::DontCare).count()
+    (*cube)
+        .iter()
+        .filter(|term| **term == TriLogic::DontCare)
+        .count()
 }
 
 fn count_all_not_dont_cares(cube: &[TriLogic]) -> usize {
-    (*cube).iter().filter(|term| **term != TriLogic::DontCare).count()
+    (*cube)
+        .iter()
+        .filter(|term| **term != TriLogic::DontCare)
+        .count()
 }
 
 #[test]
 fn test_count_don_cares() {
-    let cube = [TriLogic::True,
-                TriLogic::False,
-                TriLogic::DontCare,
-                TriLogic::DontCare,
-                TriLogic::False,
-                TriLogic::DontCare,
-                TriLogic::True];
+    let cube = [
+        TriLogic::True,
+        TriLogic::False,
+        TriLogic::DontCare,
+        TriLogic::DontCare,
+        TriLogic::False,
+        TriLogic::DontCare,
+        TriLogic::True,
+    ];
     assert!(count_all_dont_cares(&cube) == 3, "count all dont_cares");
-    assert!(count_all_not_dont_cares(&cube) == 4,
-            "count all not dont_cares");
+    assert!(
+        count_all_not_dont_cares(&cube) == 4,
+        "count all not dont_cares"
+    );
 }
 
 fn most_binate_variable(F: &CubeList) -> usize {
@@ -95,40 +127,44 @@ fn most_binate_variable(F: &CubeList) -> usize {
     #[inline]
     fn cmp_binate(left: &BinateVarAttrs, right: &BinateVarAttrs) -> Ordering {
         match (left, right) {
-            (&BinateVarAttrs(t1, c1, i1), &BinateVarAttrs(t2, c2, i2)) => if t2 + c2 < t1 + c1 {
-                Ordering::Less
-            } else if t2 + c2 > t1 + c1 {
-                Ordering::Greater
-            } else {
-                // t1+c1 == t2+c2
-                if (t1 - c1).abs() < (t1 - c1).abs() {
+            (&BinateVarAttrs(t1, c1, i1), &BinateVarAttrs(t2, c2, i2)) => {
+                if t2 + c2 < t1 + c1 {
                     Ordering::Less
-                } else if (t1 - c1).abs() > (t1 - c1).abs() {
+                } else if t2 + c2 > t1 + c1 {
                     Ordering::Greater
-                } else if i1 < i2 {
-                    Ordering::Less
                 } else {
-                    Ordering::Equal
+                    // t1+c1 == t2+c2
+                    if (t1 - c1).abs() < (t1 - c1).abs() {
+                        Ordering::Less
+                    } else if (t1 - c1).abs() > (t1 - c1).abs() {
+                        Ordering::Greater
+                    } else if i1 < i2 {
+                        Ordering::Less
+                    } else {
+                        Ordering::Equal
+                    }
                 }
-            },
+            }
         }
     }
 
     #[inline]
     fn cmp_unate(left: &BinateVarAttrs, right: &BinateVarAttrs) -> Ordering {
         match (left, right) {
-            (&BinateVarAttrs(t1, c1, i1), &BinateVarAttrs(t2, c2, i2)) => if t2 + c2 < t1 + c1 {
-                Ordering::Less
-            } else if t2 + c2 > t1 + c1 {
-                Ordering::Greater
-            } else {
-                // t1+c1 == t2+c2
-                if i1 < i2 {
+            (&BinateVarAttrs(t1, c1, i1), &BinateVarAttrs(t2, c2, i2)) => {
+                if t2 + c2 < t1 + c1 {
                     Ordering::Less
+                } else if t2 + c2 > t1 + c1 {
+                    Ordering::Greater
                 } else {
-                    Ordering::Equal
+                    // t1+c1 == t2+c2
+                    if i1 < i2 {
+                        Ordering::Less
+                    } else {
+                        Ordering::Equal
+                    }
                 }
-            },
+            }
         }
     }
 
@@ -164,23 +200,17 @@ fn most_binate_variable(F: &CubeList) -> usize {
         // println!("tie[{}] = ({},{},{})",k,t,c,i);
     }
 
-    let there_are_binate_vars = tie.iter()
-                                   .any(|x| {
-                                       match *x {
-                                           BinateVarAttrs(t, c, _) => t > 0 && c > 0,
-                                       }
-                                   });
+    let there_are_binate_vars = tie.iter().any(|x| match *x {
+        BinateVarAttrs(t, c, _) => t > 0 && c > 0,
+    });
     let split_var_idx = if there_are_binate_vars {
         // filter tie, leave only binate cubes
         let mut tie_binate: Vec<BinateVarAttrs> = tie.iter()
-                                                     .filter(|&x| {
-                                                         match *x {
-                                                             BinateVarAttrs(t, c, _) =>
-                                                                 t > 0 && c > 0,
-                                                         }
-                                                     })
-                                                     .map(|x| x.clone())
-                                                     .collect();
+            .filter(|&x| match *x {
+                BinateVarAttrs(t, c, _) => t > 0 && c > 0,
+            })
+            .map(|x| x.clone())
+            .collect();
         tie_binate.sort_by(cmp_binate);
         // println!("sorted binate: {:?}", tie_binate);
         let BinateVarAttrs(_, _, split_var_idx) = tie_binate[0];
@@ -205,9 +235,7 @@ fn positiveCofactor(F: &CubeList, x: usize) -> CubeList {
                 cofactor_list.push_back(cube)
             }
             TriLogic::False => {} // => remove this cube
-            TriLogic::DontCare => {
-                cofactor_list.push_back(cube)
-            } // leave it as is
+            TriLogic::DontCare => cofactor_list.push_back(cube), // leave it as is
         }
     }
     cofactor_list
@@ -224,9 +252,7 @@ fn negativeCofactor(F: &CubeList, x: usize) -> CubeList {
                 cube[x] = TriLogic::DontCare;
                 cofactor_list.push_back(cube)
             }
-            TriLogic::DontCare => {
-                cofactor_list.push_back(cube)
-            } // leave it as is
+            TriLogic::DontCare => cofactor_list.push_back(cube), // leave it as is
         }
     }
     cofactor_list
@@ -234,29 +260,56 @@ fn negativeCofactor(F: &CubeList, x: usize) -> CubeList {
 
 #[test]
 fn cofactors_test() {
-    let clist: CubeList = LinkedList::from_iter(vec![vec![TriLogic::True,
-                                                          TriLogic::True,
-                                                          TriLogic::DontCare,
-                                                          TriLogic::True],
-                                                     vec![TriLogic::DontCare,
-                                                          TriLogic::True,
-                                                          TriLogic::False,
-                                                          TriLogic::DontCare]]);
+    let clist: CubeList = LinkedList::from_iter(vec![
+        vec![
+            TriLogic::True,
+            TriLogic::True,
+            TriLogic::DontCare,
+            TriLogic::True,
+        ],
+        vec![
+            TriLogic::DontCare,
+            TriLogic::True,
+            TriLogic::False,
+            TriLogic::DontCare,
+        ],
+    ]);
 
     let mut fa = positiveCofactor(&clist, 0);
     let fc = positiveCofactor(&clist, 2);
 
     assert!(fa.len() == 2);
     assert!(fc.len() == 1);
-    assert!(fa.front().unwrap() ==
-            &[TriLogic::DontCare, TriLogic::True, TriLogic::DontCare, TriLogic::True],
-            "fa -- 1st cube");
-    assert!(fa.pop_back() ==
-            Some(vec![TriLogic::DontCare, TriLogic::True, TriLogic::False, TriLogic::DontCare]),
-            "fa -- 2nd cube");
-    assert!(fc.front().unwrap() ==
-            &[TriLogic::True, TriLogic::True, TriLogic::DontCare, TriLogic::True],
-            "fc -- 1st cube");
+    assert!(
+        fa.front().unwrap() ==
+            &[
+                TriLogic::DontCare,
+                TriLogic::True,
+                TriLogic::DontCare,
+                TriLogic::True,
+            ],
+        "fa -- 1st cube"
+    );
+    assert!(
+        fa.pop_back() ==
+            Some(vec![
+                TriLogic::DontCare,
+                TriLogic::True,
+                TriLogic::False,
+                TriLogic::DontCare,
+            ]),
+        "fa -- 2nd cube"
+    );
+    assert!(
+        fc.front().unwrap() ==
+            &[
+                TriLogic::True,
+                TriLogic::True,
+                TriLogic::DontCare,
+                TriLogic::True,
+            ],
+        "fc -- 1st cube"
+    );
 }
 
 // x offset is 1 to distinguish positive x and negative x'
@@ -279,22 +332,42 @@ fn AND(x: isize, F: &CubeList) -> CubeList {
 
 #[test]
 fn AND_test() {
-    let clist: CubeList = LinkedList::from_iter(vec![vec![TriLogic::DontCare,
-                                                          TriLogic::True,
-                                                          TriLogic::True,
-                                                          TriLogic::DontCare],
-                                                     vec![TriLogic::DontCare,
-                                                          TriLogic::DontCare,
-                                                          TriLogic::True,
-                                                          TriLogic::False]]);
+    let clist: CubeList = LinkedList::from_iter(vec![
+        vec![
+            TriLogic::DontCare,
+            TriLogic::True,
+            TriLogic::True,
+            TriLogic::DontCare,
+        ],
+        vec![
+            TriLogic::DontCare,
+            TriLogic::DontCare,
+            TriLogic::True,
+            TriLogic::False,
+        ],
+    ]);
     let mut anda = AND(1, &clist);
     assert!(anda.len() == 2, "and_test list length check");
-    assert!(anda.front().unwrap() ==
-            &[TriLogic::True, TriLogic::True, TriLogic::True, TriLogic::DontCare],
-            "and_test 1st cube");
-    assert!(anda.pop_back() ==
-            Some(vec![TriLogic::True, TriLogic::DontCare, TriLogic::True, TriLogic::False]),
-            "and_test 2nd cube");
+    assert!(
+        anda.front().unwrap() ==
+            &[
+                TriLogic::True,
+                TriLogic::True,
+                TriLogic::True,
+                TriLogic::DontCare,
+            ],
+        "and_test 1st cube"
+    );
+    assert!(
+        anda.pop_back() ==
+            Some(vec![
+                TriLogic::True,
+                TriLogic::DontCare,
+                TriLogic::True,
+                TriLogic::False,
+            ]),
+        "and_test 2nd cube"
+    );
 }
 
 fn OR(P: &CubeList, N: &CubeList) -> CubeList {
@@ -305,22 +378,34 @@ fn OR(P: &CubeList, N: &CubeList) -> CubeList {
 
 #[test]
 fn OR_test() {
-    let clist1: CubeList = LinkedList::from_iter(vec![vec![TriLogic::DontCare,
-                                                           TriLogic::True,
-                                                           TriLogic::True,
-                                                           TriLogic::DontCare],
-                                                      vec![TriLogic::DontCare,
-                                                           TriLogic::DontCare,
-                                                           TriLogic::True,
-                                                           TriLogic::False]]);
-    let clist2: CubeList = LinkedList::from_iter(vec![vec![TriLogic::True,
-                                                           TriLogic::False,
-                                                           TriLogic::True,
-                                                           TriLogic::DontCare],
-                                                      vec![TriLogic::DontCare,
-                                                           TriLogic::DontCare,
-                                                           TriLogic::True,
-                                                           TriLogic::False]]);
+    let clist1: CubeList = LinkedList::from_iter(vec![
+        vec![
+            TriLogic::DontCare,
+            TriLogic::True,
+            TriLogic::True,
+            TriLogic::DontCare,
+        ],
+        vec![
+            TriLogic::DontCare,
+            TriLogic::DontCare,
+            TriLogic::True,
+            TriLogic::False,
+        ],
+    ]);
+    let clist2: CubeList = LinkedList::from_iter(vec![
+        vec![
+            TriLogic::True,
+            TriLogic::False,
+            TriLogic::True,
+            TriLogic::DontCare,
+        ],
+        vec![
+            TriLogic::DontCare,
+            TriLogic::DontCare,
+            TriLogic::True,
+            TriLogic::False,
+        ],
+    ]);
     let or_list = OR(&clist1, &clist2);
     assert!(or_list.len() == 4, "or_test list length check");
 }
@@ -351,35 +436,51 @@ fn direct_complement(F: &CubeList) -> CubeList {
 
 #[test]
 fn direct_complement_test() {
-    let clist: CubeList = LinkedList::from_iter(vec![vec![TriLogic::DontCare,
-                                                          TriLogic::True,
-                                                          TriLogic::False,
-                                                          TriLogic::True]]);
+    let clist: CubeList = LinkedList::from_iter(vec![
+        vec![
+            TriLogic::DontCare,
+            TriLogic::True,
+            TriLogic::False,
+            TriLogic::True,
+        ],
+    ]);
     let compl_list = direct_complement(&clist);
     assert!(compl_list.len() == 3);
     let mut cnt = 0;
     for c in compl_list.iter() {
         match (cnt, c) {
             (0, c1) => {
-                assert!(c1 ==
-                        &[TriLogic::DontCare,
-                          TriLogic::False,
-                          TriLogic::DontCare,
-                          TriLogic::DontCare])
+                assert!(
+                    c1 ==
+                        &[
+                            TriLogic::DontCare,
+                            TriLogic::False,
+                            TriLogic::DontCare,
+                            TriLogic::DontCare,
+                        ]
+                )
             }
             (1, c2) => {
-                assert!(c2 ==
-                        &[TriLogic::DontCare,
-                          TriLogic::DontCare,
-                          TriLogic::True,
-                          TriLogic::DontCare])
+                assert!(
+                    c2 ==
+                        &[
+                            TriLogic::DontCare,
+                            TriLogic::DontCare,
+                            TriLogic::True,
+                            TriLogic::DontCare,
+                        ]
+                )
             }
             (2, c3) => {
-                assert!(c3 ==
-                        &[TriLogic::DontCare,
-                          TriLogic::DontCare,
-                          TriLogic::DontCare,
-                          TriLogic::False])
+                assert!(
+                    c3 ==
+                        &[
+                            TriLogic::DontCare,
+                            TriLogic::DontCare,
+                            TriLogic::DontCare,
+                            TriLogic::False,
+                        ]
+                )
             }
             _ => panic!("impossible happened"),
         }
@@ -478,10 +579,7 @@ fn main() {
                 }
                 let nterms: usize = chunks[0].parse().ok().expect("a number expected");
                 let terms: Vec<isize> = Vec::from_iter((0..nterms).map(|idx| {
-                    chunks[idx + 1]
-                        .parse()
-                        .ok()
-                        .expect("a number expected")
+                    chunks[idx + 1].parse().ok().expect("a number expected")
                 }));
                 println!("nterms: {} terms: {:?}", nterms, terms);
                 let mut cube = vec![TriLogic::DontCare; num_vars];
