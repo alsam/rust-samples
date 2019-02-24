@@ -47,7 +47,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#![feature(duration_span)]
+//#![feature(duration_span)]
 
 extern crate argparse;
 extern crate num;

@@ -27,9 +27,9 @@ byteorder = "*"
 #rustfft = "*"
 arrayfire = "*"
 special-fun = "*"
-simd = "*"
+#simd = "*"
 roots = "*"
-indoc = "^0.1"
+#indoc = "*"
 unindent = "*"
 integration =  { git = "https://github.com/photino/integration.git" }
 
@@ -114,9 +114,9 @@ path = "src/ndarray_demo.rs"
 name = "nbody"
 path = "src/nbody.rs"
 
-[[bin]]
-name = "nbody_simd"
-path = "src/nbody_simd.rs"
+#[[bin]]
+#name = "nbody_simd"
+#path = "src/nbody_simd.rs"
 
 [[bin]]
 name = "add_sum_sq"

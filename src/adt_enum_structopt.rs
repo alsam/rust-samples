@@ -26,8 +26,7 @@
 // use `structopt` crate instead of `docopt_macros` for command line parsing
 
 #![feature(plugin)]
-#![feature(custom_derive)]
-#![plugin(indoc)]
+// #[proc_macro_derive]
 
 extern crate structopt;
 #[macro_use] extern crate structopt_derive;
@@ -319,12 +318,12 @@ fn write_asy<T: Num + std::fmt::Display>(fname: &str,
                 "size({},{});\n",
                 (urx - llx) * DELTA,
                 (ury - lly) * DELTA));
-    try!(f.write(indoc!("
+    try!(f.write("
                  void draw_grid_cell(pair lb, pair ru, pen p = defaultpen())
                  {
                    path r = lb -- (ru.x, lb.y) -- ru -- (lb.x, ru.y) -- cycle;
                    filldraw(r, p);
-                 }\n\n")
+                 }\n\n"
         .as_bytes()));
 
     let points = &grid.points;
