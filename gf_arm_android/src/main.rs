@@ -3,7 +3,6 @@ extern crate clap;
 
 use std::fs::File;
 use std::io::{Read,Write};
-use std::str::from_utf8;
 
 // [Macro clap::clap_app](https://docs.rs/clap/2.33.0/clap/macro.clap_app.html)
 
