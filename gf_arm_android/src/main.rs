@@ -52,7 +52,7 @@ fn read_sys_record(sys_path: &str) -> String {
         let sz = file.read_to_string(&mut read_buf).expect("cannot read sysfs");
         assert!(sz > 0);
     }
-    read_buf.trim_right().to_string()
+    read_buf.trim().to_string()
 }
 
 fn read_sys_as_u64(sys_path: &str) -> u64 {
@@ -62,6 +62,22 @@ fn read_sys_as_u64(sys_path: &str) -> u64 {
 
 fn read_gpu_frequency() -> u64 {
     read_sys_as_u64(&gpu_freq_stat("cur_freq"))
+}
+
+fn get_device_available_frequencies() -> AvailableFrequencies {
+    fn get_sys_freqs(sys_path: &str) -> Vec<u64> {
+        let mut freqs: Vec<u64> = Vec::new();
+        if let Ok(mut file) = File::open(sys_path) {
+            let mut read_buf = String::new();
+            let sz = file.read_to_string(&mut read_buf).expect("cannot read sysfs");
+            assert!(sz > 0);
+            let vec: Vec<&str> = read_buf.trim().split(' ').collect();
+            freqs = vec.into_iter().map(|x| x.parse().expect("cannot parse to u64")).collect();
+        }
+        freqs
+    }
+    AvailableFrequencies { gpu: get_sys_freqs(&gpu_freq_stat("available_frequencies")),
+                           ddr: Vec::new(), cpu_little: Vec::new(), cpu_medium: Vec::new(), cpu_big: Vec::new(), }
 }
 
 fn main() {
@@ -78,6 +94,11 @@ fn main() {
 
     if matches.is_present("VERBOSE") {
         println!("gf_freq command line args matches: {:?}", matches);
+    }
+
+    if matches.is_present("AVAILABLE") {
+        let avail = get_device_available_frequencies();
+        println!("GPU available frequencies: {:?}", avail.gpu);
     }
 
     if matches.is_present("SHOW") {
