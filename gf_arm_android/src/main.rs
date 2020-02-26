@@ -46,18 +46,29 @@ impl ActualFrequencies {
     }
 }
 
-fn read_sys_record(sys_path: &str) -> String {
+fn read_sys_str(sys_path: &str) -> String {
     let mut read_buf = String::new();
     if let Ok(mut file) = File::open(sys_path) {
-        let sz = file.read_to_string(&mut read_buf).expect("cannot read sysfs");
+        let sz = file.read_to_string(&mut read_buf).expect("cannot read from sysfs");
         assert!(sz > 0);
     }
     read_buf.trim().to_string()
 }
 
 fn read_sys_as_u64(sys_path: &str) -> u64 {
-    let str_buf = read_sys_record(sys_path);
+    let str_buf = read_sys_str(sys_path);
     str_buf.parse().expect("cannot parse to u64")
+}
+
+fn write_sys_str(sys_path: &str, val: &str) {
+    if let Ok(mut file) = File::create(sys_path) {
+        let sz = file.write(&val.as_bytes()).expect("cannot write to sysfs");
+        assert!(sz > 0);
+    }
+}
+
+fn write_sys_u64(sys_path: &str, val: u64) {
+    write_sys_str(sys_path, &format!("{}", val))
 }
 
 fn read_gpu_frequency() -> u64 {
@@ -80,6 +91,22 @@ fn get_device_available_frequencies() -> AvailableFrequencies {
                            ddr: Vec::new(), cpu_little: Vec::new(), cpu_medium: Vec::new(), cpu_big: Vec::new(), }
 }
 
+fn lock_sys_freq(freq: u64, cur_freq: u64, sys_min_freq: &str, sys_max_freq: &str)
+{
+    if freq < cur_freq {
+        write_sys_u64(sys_min_freq, freq);
+        write_sys_u64(sys_max_freq, freq)
+    } else if freq > cur_freq {
+        write_sys_u64(sys_max_freq, freq);
+        write_sys_u64(sys_min_freq, freq)
+    }
+}
+
+fn lock_gpu_frequency(freq: u64)
+{
+    lock_sys_freq(freq, read_gpu_frequency(), &gpu_freq_stat("min_freq"), &gpu_freq_stat("max_freq"))
+}
+
 fn main() {
     let matches = clap_app!(gf =>
         (version: "0.1")
@@ -93,12 +120,12 @@ fn main() {
     ).get_matches();
 
     if matches.is_present("VERBOSE") {
-        println!("gf_freq command line args matches: {:?}", matches);
+        println!("gf_freq command line args matches: {:?}", matches)
     }
 
     if matches.is_present("AVAILABLE") {
         let avail = get_device_available_frequencies();
-        println!("GPU available frequencies: {:?}", avail.gpu);
+        println!("GPU available frequencies: {:?}", avail.gpu)
     }
 
     if matches.is_present("SHOW") {
@@ -107,12 +134,13 @@ fn main() {
 
     if let Ok(gpu_freq) = value_t!(matches, "SET_GPU", u64) {
         println!("Set GPU frequency to: {}", gpu_freq);
+        lock_gpu_frequency(gpu_freq)
     }
 
     if let Ok(freq_vec) = values_t!(matches, "LOCK_FREQ", u64) {
         println!("freq_vec: {:?}", freq_vec);
         for v in freq_vec {
-            println!("Set frequency to: {}", v);
+            println!("Set frequency to: {}", v)
         }
     }
 
