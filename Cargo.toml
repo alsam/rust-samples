@@ -2,6 +2,7 @@
 name = "rust-samples"
 version = "0.0.1"
 authors = ["Alexander Samoilov <alexander.samoilov@gmail.com>"]
+edition = "2018"
 
 build = "build.rs"
 
@@ -42,50 +43,54 @@ log = "*"
 yaml-rust = "*"
 from_variants = "*"
 
-[[bin]]
-name = "array_vec_demo"
-path = "src/array_vec_demo.rs"
-
-[[bin]]
-name = "kernel_iterator"
-path = "src/kernel_iterator.rs"
-
-[[bin]]
-name = "dllist_demo"
-path = "src/dllist_demo.rs"
-
-[[bin]]
-name = "scl"
-path = "src/scalar_conservation_law.rs"
-
-[[bin]]
-name = "scl_tr"
-path = "src/scalar_conservation_law_tensor.rs"
-
-[[bin]]
-name = "binary_unate"
-path = "src/binary_unate.rs"
-
-[[bin]]
-name = "convolve"
-path = "src/fourier_shift_convolution.rs"
-
-[[bin]]
-name = "fft_kernels"
-path = "src/fft_kernels.rs"
-
-[[bin]]
-name = "generics"
-path = "src/generics.rs"
-
-[[bin]]
-name = "af_hi"
-path = "src/af_sample.rs"
-
-[[bin]]
-name = "af_fft"
-path = "src/af_fft.rs"
-
+## [[bin]]
+## name = "const_generics_demo"
+## path = "src/const_generics_demo.rs"
+## 
+## [[bin]]
+## name = "array_vec_demo"
+## path = "src/array_vec_demo.rs"
+## 
+## [[bin]]
+## name = "kernel_iterator"
+## path = "src/kernel_iterator.rs"
+## 
+## [[bin]]
+## name = "dllist_demo"
+## path = "src/dllist_demo.rs"
+## 
+## [[bin]]
+## name = "scl"
+## path = "src/scalar_conservation_law.rs"
+## 
+## [[bin]]
+## name = "scl_tr"
+## path = "src/scalar_conservation_law_tensor.rs"
+## 
+## [[bin]]
+## name = "binary_unate"
+## path = "src/binary_unate.rs"
+## 
+## [[bin]]
+## name = "convolve"
+## path = "src/fourier_shift_convolution.rs"
+## 
+## [[bin]]
+## name = "fft_kernels"
+## path = "src/fft_kernels.rs"
+## 
+## [[bin]]
+## name = "generics"
+## path = "src/generics.rs"
+## 
+## [[bin]]
+## name = "af_hi"
+## path = "src/af_sample.rs"
+## 
+## [[bin]]
+## name = "af_fft"
+## path = "src/af_fft.rs"
+ 
 [[bin]]
 name = "union"
 path = "src/union.rs"

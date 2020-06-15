@@ -26,11 +26,6 @@
 // use `structopt` crate instead of `docopt_macros` for command line parsing
 
 #![feature(plugin)]
-// #[proc_macro_derive]
-
-extern crate structopt;
-#[macro_use] extern crate structopt_derive;
-extern crate num;
 
 use structopt::StructOpt;
 use std::io;
@@ -169,7 +164,7 @@ fn read_from_file(namein: &String,
     if verbose {
         println!("read from file: {}", name);
     }
-    try!(file.read(&mut buf[0..1]));
+    file.read(&mut buf[0..1])?;
     let is_big_endian = unsafe { mem::transmute::<[u8; 1], u8>([buf[0]]) } == 1;
     let byte_order = if is_big_endian {
         ByteOrder::BigEndian
@@ -177,16 +172,16 @@ fn read_from_file(namein: &String,
         ByteOrder::LittleEndian
     };
 
-    try!(file.read(&mut buf[..]));
+    file.read(&mut buf[..])?;
     let prec = read_u32(&buf[..], byte_order).unwrap();
 
-    try!(file.read(&mut buf[..]));
+    file.read(&mut buf[..])?;
     let typ = read_u32(&buf[..], byte_order).unwrap();
 
-    try!(file.read(&mut buf[..]));
+    file.read(&mut buf[..])?;
     let xe = read_u32(&buf[..], byte_order).unwrap();
 
-    try!(file.read(&mut buf[..]));
+    file.read(&mut buf[..])?;
     let ye = read_u32(&buf[..], byte_order).unwrap();
 
     if verbose {
@@ -313,18 +308,18 @@ fn write_asy<T: Num + std::fmt::Display>(fname: &str,
                                          -> Result<(), io::Error> {
     const DELTA: usize = 10;
     let ((llx, lly), (urx, ury)) = bounding_box;
-    let mut f = try!(File::create(fname));
-    try!(write!(f,
-                "size({},{});\n",
-                (urx - llx) * DELTA,
-                (ury - lly) * DELTA));
-    try!(f.write("
-                 void draw_grid_cell(pair lb, pair ru, pen p = defaultpen())
-                 {
-                   path r = lb -- (ru.x, lb.y) -- ru -- (lb.x, ru.y) -- cycle;
-                   filldraw(r, p);
-                 }\n\n"
-        .as_bytes()));
+    let mut f = File::create(fname)?;
+    write!(f,
+           "size({},{});\n",
+           (urx - llx) * DELTA,
+           (ury - lly) * DELTA)?;
+    f.write("
+            void draw_grid_cell(pair lb, pair ru, pen p = defaultpen())
+            {
+              path r = lb -- (ru.x, lb.y) -- ru -- (lb.x, ru.y) -- cycle;
+              filldraw(r, p);
+            }\n\n"
+        .as_bytes())?;
 
     let points = &grid.points;
     for i in llx..urx {
@@ -333,7 +328,7 @@ fn write_asy<T: Num + std::fmt::Display>(fname: &str,
             if !p.is_zero() {
                 let lb = (i * DELTA, j * DELTA);
                 let ru = ((i + 1) * DELTA, (j + 1) * DELTA);
-                try!(write!(f, "draw_grid_cell({:?}, {:?}, gray*{});\n", lb, ru, p));
+                write!(f, "draw_grid_cell({:?}, {:?}, gray*{});\n", lb, ru, p)?;
             }
         }
     }

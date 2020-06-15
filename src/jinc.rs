@@ -5,15 +5,6 @@
 // see [Conditional compilation of feature gates?](https://users.rust-lang.org/t/conditional-compilation-of-feature-gates/4765)
 #![cfg_attr(feature = "use-nightly", feature(non_ascii_idents))]
 
-extern crate unindent;
-use unindent::unindent;
-
-extern crate num;
-
-extern crate special_fun;
-extern crate roots;
-extern crate integration;
-
 use std::io;
 use std::fs::{File, OpenOptions};
 use std::io::{Read, Write};
@@ -23,6 +14,7 @@ use special_fun::FloatSpecial;
 use roots::SimpleConvergency;
 use roots::find_root_brent;
 use integration::quadrature;
+use unindent::unindent;
 
 /**
  * Returns a @value \f$\frac{J_1(2\pi r)}{2\pi r}\f$ where \f$J_1\f$ - Bessel function of first kind. ... */
@@ -42,10 +34,10 @@ fn find_roots(a: f64, b: f64, f: &Fn(f64)->f64) -> Vec<f64> {
     let mut roots = Vec::new();
     const RANGES : i32 = 100;
     let dx = (b - a) / RANGES as f64;
-    let conv = SimpleConvergency{eps:1e-12f64, max_iter:80};
+    let conv = &mut SimpleConvergency{eps:1e-12f64, max_iter:80};
     for r in 0..RANGES {
         let beg = a + (r as f64)*dx;
-        let maybe_root = find_root_brent(beg, beg+dx, &f, &conv).ok();
+        let maybe_root = find_root_brent(beg, beg+dx, &f, conv).ok();
         //match maybe_root {
         //    Some(root) => roots.push(root),
         //    None => {}
@@ -68,40 +60,37 @@ fn definite_integral(f: &Fn(f64) -> f64, a: f64, b: f64) -> f64 {
 }
  
 fn write_plot_asy(fname: &str, x_label: &str, y_label: &str, x: &[f64], y: &[f64]) -> Result<(), io::Error> {
-    let mut f = try!(File::create(fname));
-    //try!(f.write(indoc!("
-    try!(f.write(unindent("
-                 import graph;
+    let mut f = File::create(fname)?;
+    f.write(unindent("
+            import graph;
                  
-                 size(600,600,IgnoreAspect);
+            size(600,600,IgnoreAspect);
                  
-                 real[] x = {").as_bytes()));
+            real[] x = {").as_bytes())?;
 
     for x_elem in x {
-        try!(write!(f, "{}, ", x_elem));
+        write!(f, "{}, ", x_elem)?;
     }
 
-    //try!(f.write(indoc!("
-    try!(f.write(unindent("
-                 };
-                 real[] y = {").as_bytes()));
+    f.write(unindent("
+            };
+            real[] y = {").as_bytes())?;
 
     for y_elem in y {
-        try!(write!(f, "{}, ", y_elem));
+        write!(f, "{}, ", y_elem)?;
     }
 
-    //try!(f.write(indoc!(r#"
-    try!(f.write(unindent(r#"
-                 };
-                 
-                 draw(graph(x, y),  green, "", MarkFill[0]);
-                 xaxis("r", BottomTop());
-                 yaxis(rotate(90)*"$\int_{z=0}^{z=\textbf{r}}J_1(z)dz$", LeftRight(), RightTicks(Label(fontsize(6pt)),
-                       new real[]{0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7}) );
-                 
-                 yequals(1, red+Dotted);
-                 
-                 "#).as_bytes()));
+    f.write(unindent(r#"
+            };
+             
+            draw(graph(x, y),  green, "", MarkFill[0]);
+            xaxis("r", BottomTop());
+            yaxis(rotate(90)*"$\int_{z=0}^{z=\textbf{r}}J_1(z)dz$", LeftRight(), RightTicks(Label(fontsize(6pt)),
+                  new real[]{0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7}) );
+            
+            yequals(1, red+Dotted);
+            
+            "#).as_bytes())?;
 
     Ok(())
 
