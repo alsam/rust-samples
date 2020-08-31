@@ -522,25 +522,25 @@ fn Complement(num_vars: usize, F: &CubeList) -> CubeList {
 }
 
 fn WriteCubeList(fname: &str, F: &CubeList) -> Result<(), io::Error> {
-    let mut f = try!(File::create(fname));
-    try!(write!(f, "{}\n", F.front().unwrap().len())); // num vars
-    try!(write!(f, "{}\n", F.len())); // num cubes
+    let mut f = File::create(fname)?;
+    write!(f, "{}\n", F.front().unwrap().len())?; // num vars
+    write!(f, "{}\n", F.len())?; // num cubes
     for cube in F.iter() {
         // print number of not dont_care terms
         let num_of_not_dont_cares = count_all_not_dont_cares(&*cube);
-        try!(write!(f, "{}", num_of_not_dont_cares));
+        write!(f, "{}", num_of_not_dont_cares)?;
         for i in 0..cube.len() {
             match (*cube)[i] {
                 TriLogic::True => {
-                    try!(write!(f, " {}", i + 1));
+                    write!(f, " {}", i + 1)?;
                 }
                 TriLogic::False => {
-                    try!(write!(f, " {}", -(i as i32) + 1));
+                    write!(f, " {}", -(i as i32) + 1)?;
                 }
                 TriLogic::DontCare => {} // do nothing 
             }
         }
-        try!(write!(f, "\n"));
+        write!(f, "\n")?;
     }
 
     Ok(())
@@ -555,7 +555,7 @@ fn main() {
 
     let inp_fname = args[1].clone();
     let out_fname = args[2].clone();
-    let is = File::open(inp_fname).unwrap(); // TODO try with `try!`
+    let is = File::open(inp_fname).unwrap();
     let reader = BufReader::new(is);
     let mut line_num = 0;
     let mut num_vars: usize = 0;

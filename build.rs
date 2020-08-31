@@ -1,7 +1,7 @@
 extern crate gcc;
 
 fn main() {
-    gcc::Config::new()
+    gcc::Build::new()
                 .file("src/ckernels.c")
                 .flag("-O5")
                 .compile("libckernels-add-sum-sq.a");
