@@ -12,6 +12,7 @@ use ndarray::{
     ArrayD,
     Ix,
     IxDyn,
+    arr2,
 };
 
 type Ix2 = (Ix, Ix);
@@ -36,4 +37,10 @@ fn main() {
     // reshape to 30 × 3 × 4 array
     let c = b.into_shape((30, 3, 4)).clone();
     println!("reshaped b: {:?}", c);
+
+    let mut ma = arr2(&[[1.,2.,3.], [4.,5.,6.]]);
+    println!("ma: {:?}", ma);
+    println!("ma.t(): {:?}", ma.t());
+    ma = ma.reversed_axes();
+    println!("ma: {:?}", ma);
 }

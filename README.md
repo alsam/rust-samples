@@ -97,3 +97,8 @@ run number : 5
 run number : 6
 elapsed time: 0.515229039s.
 ```
+
+set `AF_PATH`
+```sh
+export AF_PATH=/usr/lib
+```
