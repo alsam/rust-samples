@@ -87,7 +87,7 @@ impl MatrixMarketReader {
         }
 
         println!("wbyl[0]: {:?}", mm_header);
-        Ok(MatrixMarketReader { rows: 0, cols: 0, data_type: DataType::Real, })
+        Ok(MatrixMarketReader { rows: rows as usize, cols: cols as usize, data_type: data_type, })
     }
 }
  
