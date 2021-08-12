@@ -6,7 +6,7 @@ license = "MIT"
 
 [workspace]
 
-[dependencies.amgru]
+[dependencies.libamg]
 path = "libs/libamg"
 
 [dependencies]

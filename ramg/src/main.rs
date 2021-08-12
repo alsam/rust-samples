@@ -1,9 +1,9 @@
 #[macro_use]
 extern crate clap;
 
-extern crate amgru;
+extern crate libamg;
 
-use amgru::io::MatrixMarketReader;
+use libamg::io::MatrixMarketReader;
 
 fn main()
 {

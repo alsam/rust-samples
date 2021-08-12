@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     use std::env;
-    use amgru::io::MatrixMarketReader;
+    use libamg::io::MatrixMarketReader;
     use std::path::Path;
 
     #[test]
