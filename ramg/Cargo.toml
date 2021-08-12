@@ -1,0 +1,21 @@
+[package]
+name = "ramg"
+version = "0.0.1"
+authors = ["Alexander Samoilov <alexander.samoilov@gmail.com>"]
+license = "MIT"
+
+[workspace]
+
+[dependencies.amgru]
+path = "libs/libamg"
+
+[dependencies]
+clap = "*"
+time = "*"
+rayon = "*"
+nalgebra = "*"
+
+[profile.release]
+debug = true
+lto = true
+
