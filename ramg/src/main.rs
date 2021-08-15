@@ -4,6 +4,7 @@ extern crate clap;
 extern crate libamg;
 
 use libamg::io::MatrixMarketReader;
+use std::time::{Duration, Instant};
 
 fn main()
 {
@@ -23,6 +24,9 @@ fn main()
 
     if let Ok(matrix_name) = value_t!(matches, "SET_MATRIX", String) {
         println!("the matrix: {}", matrix_name);
+        let start = Instant::now();
         let mmr = MatrixMarketReader::new(&matrix_name);
+        let duration = start.elapsed();
+        println!("Time elapsed in `MatrixMarketReader::new()` is: {:?}", duration);
     }
 }

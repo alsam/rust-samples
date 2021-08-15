@@ -58,8 +58,8 @@ impl MatrixMarketReader {
         let mut cols = 0;
         let mut nnz  = 0;
         for words in wbyl {
-            if words[0].starts_with('%') { // skip a comment that starts from %
-                println!("words: {:?}", words);
+            if words[0].starts_with('%') { // skip comments that starts with %
+                //println!("words: {:?}", words);
             } else {
                 // read triples, the 1st one contains (rows, cols, nnz) the others - (i, j, val)
                 //let parse_word = |i: usize| words[i].parse().unwrap();
@@ -75,12 +75,12 @@ impl MatrixMarketReader {
                     rows = parse_word!(0);
                     cols = parse_word!(1);
                     nnz  = parse_word!(2);
-                    println!("rows: {} cols: {} nnz: {}", rows, cols, nnz);
+                    //println!("rows: {} cols: {} nnz: {}", rows, cols, nnz);
                 } else {
                     let x: i32 = parse_word!(0);
                     let y: i32 = parse_word!(1);
                     let v: f64 = parse_word!(f64, 2);
-                    println!("x: {} y: {} v: {:10.4e}", x, y, v);
+                    //println!("x: {} y: {} v: {:10.4e}", x, y, v);
                 }
             }
             //println!("words: {:?}", words);
