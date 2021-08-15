@@ -57,6 +57,14 @@ impl MatrixMarketReader {
         let mut rows = 0;
         let mut cols = 0;
         let mut nnz  = 0;
+        let mut row = Vec::<usize>::new();
+        let mut col = Vec::<usize>::new();
+        let mut val = match data_type {
+            DataType::Real      => Vec::<f64>::new(),
+            //DataType::Integer   => Vec::<isize>::new(),
+            //DataType::Complex => Vec::<f64>::new(),
+            _ => return Err(String::from("unsupported data type")),
+        };
         for words in wbyl {
             if words[0].starts_with('%') { // skip comments that starts with %
                 //println!("words: {:?}", words);
@@ -75,6 +83,8 @@ impl MatrixMarketReader {
                     rows = parse_word!(0);
                     cols = parse_word!(1);
                     nnz  = parse_word!(2);
+                    if is_symmetric { nnz *= 2; }
+
                     //println!("rows: {} cols: {} nnz: {}", rows, cols, nnz);
                 } else {
                     let x: i32 = parse_word!(0);
