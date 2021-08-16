@@ -1,16 +1,17 @@
 use std::fs::File;
 use std::io::{self, Read, BufRead, BufReader};
- 
+use num_complex::Complex64;
+
 enum DataType {
-    Real,
-    Complex,
-    Integer,
+    Real(Vec<f64>),
+    Complex(Vec<Complex64>),
+    Integer(Vec<isize>),
 }
 
 pub struct MatrixMarketReader {
     rows: usize,
     cols: usize,
-    data_type: DataType,
+    data: DataType,
 }
 
 fn filename_to_string(s: &str) -> io::Result<String> {
@@ -47,11 +48,11 @@ impl MatrixMarketReader {
                           "coordinate"   => true,
                           "array"        => false,
                            _             => return Err(String::from("unsupported coordinate type"))};
-        let data_type = match dtype {
-                           "real"        => DataType::Real,
-                           "complex"     => DataType::Complex,
-                           "integer"     => DataType::Integer,
-                           _             => return Err(String::from("unsupported data type"))};
+        let data = match dtype {
+                       "real"        => DataType::Real(Vec::new()),
+                       "complex"     => DataType::Complex(Vec::new()),
+                       "integer"     => DataType::Integer(Vec::new()),
+                       _             => return Err(String::from("unsupported data type"))};
 
         //let mut (rows, cols, nnz) = (0, 0, 0)
         let mut rows = 0;
@@ -59,12 +60,6 @@ impl MatrixMarketReader {
         let mut nnz  = 0;
         let mut row = Vec::<usize>::new();
         let mut col = Vec::<usize>::new();
-        let mut val = match data_type {
-            DataType::Real      => Vec::<f64>::new(),
-            //DataType::Integer   => Vec::<isize>::new(),
-            //DataType::Complex => Vec::<f64>::new(),
-            _ => return Err(String::from("unsupported data type")),
-        };
         for words in wbyl {
             if words[0].starts_with('%') { // skip comments that starts with %
                 //println!("words: {:?}", words);
@@ -97,7 +92,7 @@ impl MatrixMarketReader {
         }
 
         println!("wbyl[0]: {:?}", mm_header);
-        Ok(MatrixMarketReader { rows: rows as usize, cols: cols as usize, data_type: data_type, })
+        Ok(MatrixMarketReader { rows: rows as usize, cols: cols as usize, data: data, })
     }
 }
  
