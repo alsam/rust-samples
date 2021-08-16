@@ -3,16 +3,17 @@ use std::io::{self, Read, BufRead, BufReader};
 use num_complex::Complex64;
 use nalgebra_sparse::coo::CooMatrix;
 
+#[derive(Clone, Debug)]
 enum DataType {
     Real(Vec<f64>),
-    Complex(Vec<Complex64>),
+    //Complex(Vec<Complex64>),
     Integer(Vec<isize>),
 }
 
 pub struct MatrixMarketReader {
     rows: usize,
     cols: usize,
-    data: DataType,
+    //data: DataType,
 }
 
 fn filename_to_string(s: &str) -> io::Result<String> {
@@ -49,11 +50,11 @@ impl MatrixMarketReader {
                           "coordinate"   => true,
                           "array"        => false,
                            _             => return Err(String::from("unsupported coordinate type"))};
-        let data = match dtype {
-                       "real"        => DataType::Real(Vec::new()),
-                       "complex"     => DataType::Complex(Vec::new()),
-                       "integer"     => DataType::Integer(Vec::new()),
-                       _             => return Err(String::from("unsupported data type"))};
+        let mut data : DataType = match dtype {
+                           "real"        => DataType::Real(Vec::new()),
+                           //"complex"     => DataType::Complex(Vec::new()),
+                           "integer"     => DataType::Integer(Vec::new()),
+                           _             => return Err(String::from("unsupported data type"))};
 
         //let mut (rows, cols, nnz) = (0, 0, 0)
         let mut rows = 0;
@@ -66,15 +67,19 @@ impl MatrixMarketReader {
                 //println!("words: {:?}", words);
             } else {
                 // read triples, the 1st one contains (rows, cols, nnz) the others - (i, j, val)
-                //let parse_word = |i: usize| words[i].parse().unwrap();
                 macro_rules! parse_word {
                     ($t:ty, $i:expr) => {
                         words[$i].parse::<$t>().unwrap()
                     };
                     ($i:expr) => { // `$t` defaulted to `i32`
-                        parse_word!(i32, $i)
+                        parse_word!(isize, $i)
                     };
                 }
+                let parse_vals = move |mut data: DataType, i: usize| match data {
+                    DataType::Real(mut v)    => { v.push(parse_word!(f64,   i)); DataType::Real(v)},
+                    DataType::Integer(mut v) => { v.push(parse_word!(isize, i)); DataType::Integer(v)},
+                    //_ => return Err(String::from("not yet implemented")),
+                };
                 if rows == 0 {
                     rows = parse_word!(0);
                     cols = parse_word!(1);
@@ -85,9 +90,10 @@ impl MatrixMarketReader {
 
                     //println!("rows: {} cols: {} nnz: {}", rows, cols, nnz);
                 } else {
-                    let x: i32 = parse_word!(0);
-                    let y: i32 = parse_word!(1);
-                    let v: f64 = parse_word!(f64, 2);
+                    let x = parse_word!(0);
+                    let y = parse_word!(1);
+                    //let v: f64 = parse_word!(f64, 2);
+                    data = parse_vals(data, 2);
                     //println!("x: {} y: {} v: {:10.4e}", x, y, v);
                 }
             }
@@ -95,7 +101,8 @@ impl MatrixMarketReader {
         }
 
         println!("wbyl[0]: {:?}", mm_header);
-        Ok(Self { rows: rows as usize, cols: cols as usize, data: data, })
+        println!("data: {:?}", data);
+        Ok(Self { rows: rows as usize, cols: cols as usize, /*data: data,*/ })
     }
 }
  
