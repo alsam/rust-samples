@@ -1,6 +1,7 @@
 use std::fs::File;
 use std::io::{self, Read, BufRead, BufReader};
 use num_complex::Complex64;
+use nalgebra_sparse::coo::CooMatrix;
 
 enum DataType {
     Real(Vec<f64>),
@@ -26,7 +27,7 @@ fn words_by_line<'a>(s: &'a str) -> Vec<Vec<&'a str>> {
 }
 
 impl MatrixMarketReader {
-    pub fn new(fname: &str) -> Result<MatrixMarketReader, String> {
+    pub fn new(fname: &str) -> Result<Self, String> {
         //let file = File::open(fname).expect("file not found!");
         //let mut f = BufReader::new(file);
         let whole_file = filename_to_string(fname).unwrap();
@@ -80,6 +81,8 @@ impl MatrixMarketReader {
                     nnz  = parse_word!(2);
                     if is_symmetric { nnz *= 2; }
 
+
+
                     //println!("rows: {} cols: {} nnz: {}", rows, cols, nnz);
                 } else {
                     let x: i32 = parse_word!(0);
@@ -92,7 +95,7 @@ impl MatrixMarketReader {
         }
 
         println!("wbyl[0]: {:?}", mm_header);
-        Ok(MatrixMarketReader { rows: rows as usize, cols: cols as usize, data: data, })
+        Ok(Self { rows: rows as usize, cols: cols as usize, data: data, })
     }
 }
  
