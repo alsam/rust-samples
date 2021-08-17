@@ -6,7 +6,7 @@ use nalgebra_sparse::coo::CooMatrix;
 #[derive(Clone, Debug)]
 enum DataType {
     Real(Vec<f64>),
-    //Complex(Vec<Complex64>),
+    Complex(Vec<Complex64>),
     Integer(Vec<isize>),
 }
 
@@ -52,7 +52,7 @@ impl MatrixMarketReader {
                            _             => return Err(String::from("unsupported coordinate type"))};
         let mut data : DataType = match dtype {
                            "real"        => DataType::Real(Vec::new()),
-                           //"complex"     => DataType::Complex(Vec::new()),
+                           "complex"     => DataType::Complex(Vec::new()),
                            "integer"     => DataType::Integer(Vec::new()),
                            _             => return Err(String::from("unsupported data type"))};
 
@@ -75,10 +75,14 @@ impl MatrixMarketReader {
                         parse_word!(isize, $i)
                     };
                 }
-                let parse_vals = move |mut data: DataType, i: usize| match data {
-                    DataType::Real(mut v)    => { v.push(parse_word!(f64,   i)); DataType::Real(v)},
-                    DataType::Integer(mut v) => { v.push(parse_word!(isize, i)); DataType::Integer(v)},
-                    //_ => return Err(String::from("not yet implemented")),
+                let parse_vals = move |data: DataType, i: usize| match data {
+                    DataType::Real(mut v)    => { v.push(parse_word!(f64,   i));
+                                                  DataType::Real(v)},
+                    DataType::Integer(mut v) => { v.push(parse_word!(isize, i));
+                                                  DataType::Integer(v)},
+                    DataType::Complex(mut v) => { v.push(Complex64::new(parse_word!(f64, i),
+                                                                        parse_word!(f64, i + 1)));
+                                                  DataType::Complex(v)},
                 };
                 if rows == 0 {
                     rows = parse_word!(0);
