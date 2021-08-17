@@ -1,4 +1,4 @@
 pub use self::mm::{MatrixMarketReader};
-mod mm;
+pub mod mm;
 
 

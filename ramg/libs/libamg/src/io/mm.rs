@@ -1,7 +1,7 @@
 use std::fs::File;
-use std::io::{self, Read, BufRead};
+use std::io::{self, Read};
 use num_complex::Complex64;
-use nalgebra_sparse::coo::CooMatrix;
+use nalgebra_sparse::{coo::CooMatrix, csr::CsrMatrix};
 
 #[derive(Clone, Debug)]
 enum DataType {
@@ -11,8 +11,8 @@ enum DataType {
 }
 
 pub struct MatrixMarketReader {
-    rows: usize,
-    cols: usize,
+    nrows: usize,
+    ncols: usize,
     row: Vec<usize>,
     col: Vec<usize>,
     data: DataType,
@@ -55,8 +55,8 @@ impl MatrixMarketReader {
                            "integer"     => DataType::Integer(Vec::new()),
                            _             => return Err(String::from("unsupported data type"))};
 
-        let mut rows = 0usize;
-        let mut cols = 0usize;
+        let mut nrows = 0usize;
+        let mut ncols = 0usize;
         let mut nnz  = 0usize;
         let mut row = Vec::<usize>::new();
         let mut col = Vec::<usize>::new();
@@ -87,18 +87,17 @@ impl MatrixMarketReader {
                                                                         parse_word!(f64, i + 1)));
                                                   DataType::Complex(v)},
                 };
-                if rows == 0 {
-                    rows = parse_word!(0);
-                    cols = parse_word!(1);
+                if nrows == 0 {
+                    nrows = parse_word!(0);
+                    ncols = parse_word!(1);
                     nnz  = parse_word!(2);
                     if is_symmetric { nnz *= 2; }
                     row.reserve(nnz);
                     col.reserve(nnz);
                     data = reserve_data_vals(data, nnz);
-                    //println!("rows: {} cols: {} nnz: {}", rows, cols, nnz);
                 } else {
-                    let x = parse_word!(0);
-                    let y = parse_word!(1);
+                    let x = parse_word!(0) - 1;
+                    let y = parse_word!(1) - 1;
                     row.push(x);
                     col.push(y);
                     data = parse_data_vals(data, 2);
@@ -110,10 +109,24 @@ impl MatrixMarketReader {
 
         println!("wbyl[0]: {:?}", mm_header);
         //println!("data: {:?}", data);
-        Ok(Self { rows: rows, cols: cols, row: row, col: col, data: data, })
+        Ok(Self { nrows: nrows, ncols: ncols, row: row, col: col, data: data, })
     }
 }
- 
+
+pub fn create_csr(mm: &MatrixMarketReader) -> CsrMatrix<f64>
+{
+    let coo = match &mm.data {
+       DataType::Real(v) => CooMatrix::try_from_triplets(mm.nrows, mm.ncols, mm.row.clone(), mm.col.clone(), v.to_vec()),
+       _ => unimplemented!(),
+       //DataType::Integer(v) => CooMatrix::try_from_triplets(mm.nrows, mm.ncols, mm.row.clone(), mm.col.clone(), v.to_vec()),
+       //DataType::Complex(v) => CooMatrix::try_from_triplets(mm.nrows, mm.ncols, mm.row.clone(), mm.col.clone(), v.to_vec()),
+    };
+    //println!("m.row : {:?}", &mm.row);
+    //println!("coo : {:?}", &coo);
+    let csr = CsrMatrix::from(&coo.unwrap());
+    csr
+}
+
 fn use_it(fname: &str) {
     let mm = MatrixMarketReader::new("xxx");
 }

@@ -24,9 +24,14 @@ fn main()
 
     if let Ok(matrix_name) = value_t!(matches, "SET_MATRIX", String) {
         println!("the matrix: {}", matrix_name);
-        let start = Instant::now();
+        let mut start = Instant::now();
         let mmr = MatrixMarketReader::new(&matrix_name);
-        let duration = start.elapsed();
+        let mut duration = start.elapsed();
         println!("Time elapsed in `MatrixMarketReader::new()` is: {:?}", duration);
+        start = Instant::now();
+        let csr = libamg::io::mm::create_csr(&mmr.unwrap());
+        duration = start.elapsed();
+        println!("Time elapsed in `create_csr()` is: {:?}", duration);
+        //println!("csr: {:?}", &csr);
     }
 }
