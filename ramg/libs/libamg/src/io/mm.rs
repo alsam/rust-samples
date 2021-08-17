@@ -1,5 +1,5 @@
 use std::fs::File;
-use std::io::{self, Read, BufRead, BufReader};
+use std::io::{self, Read, BufRead};
 use num_complex::Complex64;
 use nalgebra_sparse::coo::CooMatrix;
 
@@ -13,7 +13,9 @@ enum DataType {
 pub struct MatrixMarketReader {
     rows: usize,
     cols: usize,
-    //data: DataType,
+    row: Vec<usize>,
+    col: Vec<usize>,
+    data: DataType,
 }
 
 fn filename_to_string(s: &str) -> io::Result<String> {
@@ -29,8 +31,6 @@ fn words_by_line<'a>(s: &'a str) -> Vec<Vec<&'a str>> {
 
 impl MatrixMarketReader {
     pub fn new(fname: &str) -> Result<Self, String> {
-        //let file = File::open(fname).expect("file not found!");
-        //let mut f = BufReader::new(file);
         let whole_file = filename_to_string(fname).unwrap();
         let wbyl = &words_by_line(&whole_file);
         let mm_header = &wbyl[0];
@@ -39,7 +39,6 @@ impl MatrixMarketReader {
                                                     mm_header[2],
                                                     mm_header[3],
                                                     mm_header[4]);
-        //if banner.ne("%%MatrixMarket") { panic!("no banner"); }
         if banner.ne("%%MatrixMarket") { return Err(String::from("no banner")); }
         if mtx.ne("matrix") { return Err(String::from("not a matrix")); }
         let is_symmetric = match storage {
@@ -56,10 +55,9 @@ impl MatrixMarketReader {
                            "integer"     => DataType::Integer(Vec::new()),
                            _             => return Err(String::from("unsupported data type"))};
 
-        //let mut (rows, cols, nnz) = (0, 0, 0)
-        let mut rows = 0;
-        let mut cols = 0;
-        let mut nnz  = 0;
+        let mut rows = 0usize;
+        let mut cols = 0usize;
+        let mut nnz  = 0usize;
         let mut row = Vec::<usize>::new();
         let mut col = Vec::<usize>::new();
         for words in wbyl {
@@ -72,10 +70,15 @@ impl MatrixMarketReader {
                         words[$i].parse::<$t>().unwrap()
                     };
                     ($i:expr) => { // `$t` defaulted to `i32`
-                        parse_word!(isize, $i)
+                        parse_word!(usize, $i)
                     };
                 }
-                let parse_vals = move |data: DataType, i: usize| match data {
+                let reserve_data_vals = move |data: DataType, nnz: usize| match data {
+                    DataType::Real(mut v)    => { v.reserve(nnz); DataType::Real(v)},
+                    DataType::Integer(mut v) => { v.reserve(nnz); DataType::Integer(v)},
+                    DataType::Complex(mut v) => { v.reserve(nnz); DataType::Complex(v)},
+                };
+                let parse_data_vals = move |data: DataType, i: usize| match data {
                     DataType::Real(mut v)    => { v.push(parse_word!(f64,   i));
                                                   DataType::Real(v)},
                     DataType::Integer(mut v) => { v.push(parse_word!(isize, i));
@@ -89,15 +92,16 @@ impl MatrixMarketReader {
                     cols = parse_word!(1);
                     nnz  = parse_word!(2);
                     if is_symmetric { nnz *= 2; }
-
-
-
+                    row.reserve(nnz);
+                    col.reserve(nnz);
+                    data = reserve_data_vals(data, nnz);
                     //println!("rows: {} cols: {} nnz: {}", rows, cols, nnz);
                 } else {
                     let x = parse_word!(0);
                     let y = parse_word!(1);
-                    //let v: f64 = parse_word!(f64, 2);
-                    data = parse_vals(data, 2);
+                    row.push(x);
+                    col.push(y);
+                    data = parse_data_vals(data, 2);
                     //println!("x: {} y: {} v: {:10.4e}", x, y, v);
                 }
             }
@@ -105,8 +109,8 @@ impl MatrixMarketReader {
         }
 
         println!("wbyl[0]: {:?}", mm_header);
-        println!("data: {:?}", data);
-        Ok(Self { rows: rows as usize, cols: cols as usize, /*data: data,*/ })
+        //println!("data: {:?}", data);
+        Ok(Self { rows: rows, cols: cols, row: row, col: col, data: data, })
     }
 }
  
