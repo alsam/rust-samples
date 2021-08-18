@@ -2,9 +2,11 @@
 extern crate clap;
 
 extern crate libamg;
+extern crate nalgebra as na;
 
 use libamg::io::MatrixMarketReader;
 use std::time::{Duration, Instant};
+use na::io::cs_matrix_from_matrix_market;
 
 fn main()
 {
@@ -33,5 +35,11 @@ fn main()
         duration = start.elapsed();
         println!("Time elapsed in `create_csr()` is: {:?}", duration);
         //println!("csr: {:?}", &csr);
+
+        duration = start.elapsed();
+        let cs = cs_matrix_from_matrix_market::<f64, &str>(&matrix_name);
+        println!("Time elapsed in `cs_matrix_from_matrix_market()` is: {:?}", duration);
+        //println!("cs: {:?}", &cs);
+
     }
 }
