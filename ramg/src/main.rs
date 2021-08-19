@@ -36,8 +36,9 @@ fn main()
         println!("Time elapsed in `create_csr()` is: {:?}", duration);
         //println!("csr: {:?}", &csr);
 
-        duration = start.elapsed();
+        start = Instant::now();
         let cs = cs_matrix_from_matrix_market::<f64, &str>(&matrix_name);
+        duration = start.elapsed();
         println!("Time elapsed in `cs_matrix_from_matrix_market()` is: {:?}", duration);
         //println!("cs: {:?}", &cs);
 
