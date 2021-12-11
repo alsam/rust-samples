@@ -2,10 +2,12 @@ extern crate sunrise;
 #[macro_use]
 extern crate clap;
 use clap::{Arg, App, SubCommand};
-//use chrono::{NaiveTime, NaiveDateTime};
-extern crate chrono;
 
-use chrono::prelude::*;
+extern crate chrono;
+use chrono::prelude::DateTime;
+use chrono::{Utc, Local};
+use std::time::{SystemTime, UNIX_EPOCH, Duration};
+use std::convert::TryInto;
 
 fn main() {
     let matches = App::new("sunrise-exe")
@@ -61,15 +63,14 @@ fn main() {
     println!("sunrise: {} sunset: {}", sunrise, sunset);
 
     // https://stackoverflow.com/questions/50072055/converting-unix-timestamp-to-readable-time-string-in-rust
-    // Create a NaiveDateTime from the timestamp
-    let naive = NaiveDateTime::from_timestamp(sunrise, 0);
-    
-    // Create a normal DateTime from the NaiveDateTime
-    let datetime: DateTime<Utc> = DateTime::from_utc(naive, Utc);
-    
-    // Format the datetime how you want
-    let newdate = datetime.format("%Y-%m-%d %H:%M:%S");
 
-    // Print the newly formatted date and time
-    println!("{}", newdate);
+    // Creates a new SystemTime from the specified number of whole seconds
+    let d = UNIX_EPOCH + Duration::from_secs(sunrise.try_into().unwrap());
+    // Create DateTime from SystemTime
+    //let datetime = DateTime::<Utc>::from(d);
+    let datetime = DateTime::<Local>::from(d);
+    // Formats the combined date and time with the specified format string.
+    let timestamp_str = datetime.format("%Y-%m-%d %H:%M:%S.%f").to_string();
+    println!{"{}",timestamp_str};
+
 }
