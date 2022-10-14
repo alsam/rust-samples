@@ -1,0 +1,10 @@
+[package]
+name = "sunrise-exe"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+chrono = "*"
+sunrise = "1.0.0"
+#clap = "*"
+clap = { git = "https://github.com/clap-rs/clap", features = ["wrap_help"] }
