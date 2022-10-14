@@ -1,0 +1,15 @@
+[package]
+name = "evread"
+version = "0.1.0"
+authors = ["Alexander Samoilov <alexander.samoilov@hayden.ai>"]
+edition = "2021"
+
+[lib]
+crate-type = ["staticlib", "lib"]
+#crate-type = ["dylib"]
+
+[dependencies]
+serde = "^1.0"
+serde_json = "^1.0"
+serde_derive = "^1.0"
+safer-ffi = { version = "0.0.10", features = ["proc_macros"] }
