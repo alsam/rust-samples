@@ -1,0 +1,17 @@
+# -*- mode:python -*-
+
+import os
+
+def PhonyTargets(env=None, **kw):
+    if not env:
+        env = DefaultEnvironment()
+    for target, action in kw.items():
+        env.AlwaysBuild(env.Alias(target, [], action))
+
+env = Environment(ENV = { 'PATH' : os.environ['PATH'] })
+
+PhonyTargets(env,
+             target = "cargo build",
+             lib    = "cargo build --manifest-path=libs/evread/Cargo.toml",
+             run    = "cargo run -- --events test_data/events.json",
+             test   = "cargo test --manifest-path=libs/evread/Cargo.toml")
