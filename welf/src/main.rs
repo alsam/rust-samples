@@ -19,5 +19,5 @@ pub struct AlignedData<T: ?Sized>(T);
 
 fn main() {
     let args = Args::parse();
-    println!("I'm going to anylyze elf {}", &args.elf);
+    println!("I'm going to analyze elf {}", &args.elf);
 }
