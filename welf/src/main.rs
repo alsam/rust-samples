@@ -27,6 +27,7 @@ fn main() -> error::Result<()> {
    let buffer = fs::read(elves_path)?;
    match goblin::elf::Elf::parse(&buffer) {
       Ok(binary) => {
+         println!("elf itself: {:?}",&binary);
          let entry = binary.entry;
          for ph in binary.program_headers {
             println!("ph: {:?}",&ph);
