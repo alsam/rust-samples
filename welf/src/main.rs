@@ -2,6 +2,7 @@ use clap::Parser;
 use goblin::{error, Object};
 use goblin::elf::sym::{Sym, Symtab};
 use std::path::Path;
+use std::error::Error;
 use std::fs;
 
 #[derive(Parser, Debug)]
@@ -20,12 +21,8 @@ struct Args {
 #[repr(align(64))] // Align to cache lines
 pub struct AlignedData<T: ?Sized>(T);
 
-fn main() -> error::Result<()> {
-   let args = Args::parse();
-   println!("I'm going to analyze elf {}", &args.elf);
-   let elves_path = Path::new(&args.elf);
-   let buffer = fs::read(elves_path)?;
-   match goblin::elf::Elf::parse(&buffer) {
+fn elf_summary(bytes: &Vec<u8>) {
+   match goblin::elf::Elf::parse(&bytes) {
       Ok(binary) => {
          println!("elf itself: {:?}",&binary);
          let entry = binary.entry;
@@ -38,8 +35,15 @@ fn main() -> error::Result<()> {
             println!("sym: {:?} with name {}", &sym, &sym_name);
          }
       },
-      Err(_) => ()
+      Err(msg) => println!("fatal: {:?}", &msg)
    }
+}
 
+fn main() -> Result<(), Box<dyn Error>> {
+   let args = Args::parse();
+   println!("I'm going to analyze elf {}", &args.elf);
+   let elves_path = Path::new(&args.elf);
+   let buffer: Vec<u8> = fs::read(elves_path)?;
+   elf_summary(&buffer);
    Ok(())
 }
