@@ -34,7 +34,8 @@ fn main() -> error::Result<()> {
          }
          let syms = binary.syms.to_vec();
          for sym in syms {
-            println!("sym: {:?}",&sym);
+            let sym_name = binary.strtab.get_at(sym.st_name).unwrap_or("");
+            println!("sym: {:?} with name {}", &sym, &sym_name);
          }
       },
       Err(_) => ()
