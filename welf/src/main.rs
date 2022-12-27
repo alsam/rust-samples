@@ -12,6 +12,10 @@ struct Args {
     #[arg(short, long)]
     elf: String,
 
+    /// Print *all* syms
+    #[arg(short, long, default_value_t = false)]
+    all_syms: bool,
+
     /// Reserved parameter for future use
     #[arg(short, long, default_value_t = 1)]
     count: u8,
@@ -21,18 +25,24 @@ struct Args {
 #[repr(align(64))] // Align to cache lines
 pub struct AlignedData<T: ?Sized>(T);
 
-fn elf_summary(bytes: &Vec<u8>) {
+fn elf_summary(bytes: &Vec<u8>, args: &Args) {
     match goblin::elf::Elf::parse(&bytes) {
         Ok(binary) => {
-            println!("elf itself: {:#x?}", &binary);
-            let entry = binary.entry;
-            for ph in binary.program_headers {
-                println!("ph: {:#x?}", &ph);
+            //println!("elf itself: {:#x?}", &binary);
+            //let entry = binary.entry;
+            //for ph in binary.program_headers {
+            //    println!("ph: {:#x?}", &ph);
+            //}
+            for sh in binary.section_headers {
+                let sect_name = binary.shdr_strtab.get_at(sh.sh_name).unwrap_or("");
+                println!("section {} {:#x?}", &sect_name, &sh);
             }
-            let syms = binary.syms.to_vec();
-            for sym in syms {
-                let sym_name = binary.strtab.get_at(sym.st_name).unwrap_or("");
-                println!("sym: {:#x?} with name {}", &sym, &sym_name);
+            if args.all_syms {
+                let syms = binary.syms.to_vec();
+                for sym in syms {
+                    let sym_name = binary.strtab.get_at(sym.st_name).unwrap_or("");
+                    println!("sym: {:#x?} with name {}", &sym, &sym_name);
+                }
             }
         }
         Err(msg) => println!("fatal: {:?}", &msg),
@@ -41,9 +51,8 @@ fn elf_summary(bytes: &Vec<u8>) {
 
 fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
-    println!("I'm going to analyze elf {}", &args.elf);
     let elves_path = Path::new(&args.elf);
     let buffer: Vec<u8> = fs::read(elves_path)?;
-    elf_summary(&buffer);
+    elf_summary(&buffer, &args);
     Ok(())
 }
