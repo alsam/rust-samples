@@ -16,9 +16,9 @@ struct Args {
     #[arg(short, long, default_value_t = false)]
     all_syms: bool,
 
-    /// Dissassemble .text
-    #[arg(short, long, default_value_t = false)]
-    disasm: bool,
+    /// Dissassemble given sections
+    #[arg(short, long, num_args(1..))] // at least one section, such as .text
+    disasm: Option<Vec<String>>,
 
     /// Reserved parameter for future use
     #[arg(short, long, default_value_t = 1)]
@@ -59,6 +59,7 @@ fn elf_summary(bytes: &Vec<u8>, args: &Args) {
 
 fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
+    println!("args: {:#x?}", &args);
     let elves_path = Path::new(&args.elf);
     let buffer: Vec<u8> = fs::read(elves_path)?;
     elf_summary(&buffer, &args);
