@@ -4,6 +4,7 @@ use goblin::{error, Object};
 use std::error::Error;
 use std::fs;
 use std::path::Path;
+use std::collections::HashSet;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -41,6 +42,9 @@ fn elf_summary(bytes: &Vec<u8>, args: &Args) {
             //for ph in binary.program_headers {
             //    println!("ph: {:#x?}", &ph);
             //}
+            let sects_to_disasm: Vec<String> = args.disasm.as_ref().unwrap_or(&Vec::new()).clone();
+            let hash_sects_to_disasm: HashSet<String> = HashSet::from_iter(sects_to_disasm);
+            println!("hash_sects_to_disasm: {:#x?}", &hash_sects_to_disasm);
             for sh in binary.section_headers {
                 let sect_name = binary.shdr_strtab.get_at(sh.sh_name).unwrap_or("");
                 println!("section {} {:#x?}", &sect_name, &sh);
