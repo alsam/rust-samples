@@ -16,6 +16,10 @@ struct Args {
     #[arg(short, long, default_value_t = false)]
     all_syms: bool,
 
+    /// Dissassemble .text
+    #[arg(short, long, default_value_t = false)]
+    disasm: bool,
+
     /// Reserved parameter for future use
     #[arg(short, long, default_value_t = 1)]
     count: u8,
@@ -24,6 +28,10 @@ struct Args {
 #[repr(C)]
 #[repr(align(64))] // Align to cache lines
 pub struct AlignedData<T: ?Sized>(T);
+
+fn disasm(bytes: &Vec<u8>) {
+
+}
 
 fn elf_summary(bytes: &Vec<u8>, args: &Args) {
     match goblin::elf::Elf::parse(&bytes) {
