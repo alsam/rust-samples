@@ -18,8 +18,8 @@ struct Args {
     all_syms: bool,
 
     /// Dissassemble given sections
-    #[arg(short, long, num_args(1..))] // at least one section, such as .text
-    disasm: Option<Vec<String>>,
+    #[arg(required = false, short, long, num_args(1..))] // at least one section, such as .text
+    disasm: Vec<String>,
 
     /// Reserved parameter for future use
     #[arg(short, long, default_value_t = 1)]
@@ -46,13 +46,13 @@ fn elf_summary(bytes: &Vec<u8>, args: &Args) {
             //for ph in binary.program_headers {
             //    println!("ph: {:#x?}", &ph);
             //}
-            let sects_to_disasm: Vec<String> = args.disasm.as_ref().unwrap_or(&Vec::new()).clone();
-            let hash_sects_to_disasm: HashSet<String> = HashSet::from_iter(sects_to_disasm);
+            let hash_sects_to_disasm: HashSet<String> = HashSet::from_iter(args.disasm.clone());
             if args.verbose >= 3 { println!("hash_sects_to_disasm: {:#x?}", &hash_sects_to_disasm); }
             for sh in binary.section_headers {
                 let sect_name = binary.shdr_strtab.get_at(sh.sh_name).unwrap_or("");
                 println!("section {} {:#x?}", &sect_name, &sh);
             }
+
             if args.all_syms {
                 let syms = binary.syms.to_vec();
                 for sym in syms {
