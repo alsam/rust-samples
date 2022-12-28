@@ -5,6 +5,7 @@ use std::error::Error;
 use std::fs;
 use std::path::Path;
 use std::collections::HashSet;
+use capstone::prelude::*;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -34,23 +35,43 @@ struct Args {
 #[repr(align(64))] // Align to cache lines
 pub struct AlignedData<T: ?Sized>(T);
 
-fn disasm(bytes: &Vec<u8>) {
-
+fn disasm(bytes: &[u8], addr: u64) {
+    let cs = Capstone::new()
+        .x86()
+        .mode(arch::x86::ArchMode::Mode64)
+        .build()
+        .expect("failed to create capstone handle");
+    match cs.disasm_all(bytes, addr) {
+        Ok(insns) => {
+            println!("disassembled {} instructions", insns.len());
+            for i in insns.iter() {
+                println!("{}", i);
+            }
+        }
+        Err(err) => {
+            println!("error {} while disassembling", err);
+        }
+    };
 }
 
 fn elf_summary(bytes: &Vec<u8>, args: &Args) {
     match goblin::elf::Elf::parse(&bytes) {
         Ok(binary) => {
-            //println!("elf itself: {:#x?}", &binary);
+            if args.verbose >= 4 { println!("elf itself: {:#x?}", &binary); }
             //let entry = binary.entry;
             //for ph in binary.program_headers {
             //    println!("ph: {:#x?}", &ph);
             //}
-            let hash_sects_to_disasm: HashSet<String> = HashSet::from_iter(args.disasm.clone());
-            if args.verbose >= 3 { println!("hash_sects_to_disasm: {:#x?}", &hash_sects_to_disasm); }
+            let sects_to_disasm: HashSet<String> = HashSet::from_iter(args.disasm.clone());
+            if args.verbose >= 3 { println!("sects_to_disasm: {:#x?}", &sects_to_disasm); }
             for sh in binary.section_headers {
-                let sect_name = binary.shdr_strtab.get_at(sh.sh_name).unwrap_or("");
+                let sect_name = binary.shdr_strtab.get_at(sh.sh_name).unwrap_or("").to_string();
                 println!("section {} {:#x?}", &sect_name, &sh);
+                if sects_to_disasm.contains(&sect_name) {
+                    if args.verbose >= 3 { println!("disassembling the section {}", &sect_name); }
+                    let offset = sh.sh_offset as usize;
+                    disasm(&bytes[offset .. offset + sh.sh_size as usize], sh.sh_addr);
+                }
             }
 
             if args.all_syms {
