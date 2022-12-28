@@ -14,7 +14,7 @@ struct Args {
     elf: String,
 
     /// Print *all* syms
-    #[arg(short, long, default_value_t = false)]
+    #[arg(short, long)]
     all_syms: bool,
 
     /// Dissassemble given sections
@@ -24,6 +24,10 @@ struct Args {
     /// Reserved parameter for future use
     #[arg(short, long, default_value_t = 1)]
     count: u8,
+
+    //#[arg(short, long, default_value_t = 0)]
+    #[arg(short, long, action = clap::ArgAction::Count)]
+    verbose: u8,
 }
 
 #[repr(C)]
@@ -44,7 +48,7 @@ fn elf_summary(bytes: &Vec<u8>, args: &Args) {
             //}
             let sects_to_disasm: Vec<String> = args.disasm.as_ref().unwrap_or(&Vec::new()).clone();
             let hash_sects_to_disasm: HashSet<String> = HashSet::from_iter(sects_to_disasm);
-            println!("hash_sects_to_disasm: {:#x?}", &hash_sects_to_disasm);
+            if args.verbose >= 3 { println!("hash_sects_to_disasm: {:#x?}", &hash_sects_to_disasm); }
             for sh in binary.section_headers {
                 let sect_name = binary.shdr_strtab.get_at(sh.sh_name).unwrap_or("");
                 println!("section {} {:#x?}", &sect_name, &sh);
@@ -63,7 +67,7 @@ fn elf_summary(bytes: &Vec<u8>, args: &Args) {
 
 fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
-    println!("args: {:#x?}", &args);
+    if args.verbose >= 2 { println!("args: {:#x?}", &args); }
     let elves_path = Path::new(&args.elf);
     let buffer: Vec<u8> = fs::read(elves_path)?;
     elf_summary(&buffer, &args);
