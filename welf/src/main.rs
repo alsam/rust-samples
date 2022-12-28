@@ -25,7 +25,7 @@ struct Args {
     #[arg(short, long, default_value_t = 1)]
     count: u8,
 
-    //#[arg(short, long, default_value_t = 0)]
+    /// Verbosity level
     #[arg(short, long, action = clap::ArgAction::Count)]
     verbose: u8,
 }
