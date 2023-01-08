@@ -9,3 +9,4 @@ edition = "2021"
 capstone = { version = "0.11.0" }
 clap = { version = "^4", features = ["derive"] }
 goblin = "0.6"
+lief-cwal = "0.1.0"

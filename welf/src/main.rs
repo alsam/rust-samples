@@ -6,6 +6,9 @@ use std::collections::HashSet;
 use std::error::Error;
 use std::fs;
 use std::path::Path;
+use std::{fs::File, io::Read, path::PathBuf, str::FromStr};
+use lief_cwal as lief;
+use lief::{Binary, VerificationChecks, VerificationFlags};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -129,5 +132,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     let elves_path = Path::new(&args.elf);
     let buffer: Vec<u8> = fs::read(elves_path)?;
     elf_summary(&buffer, &args);
+    // the same with lief
+    let path = PathBuf::from_str(&args.elf).unwrap();
+    let binary = Binary::new(path).unwrap();
+    // println!("binary: {:#x?}", &binary); // `Binary` doesn't implement `Debug`
     Ok(())
 }
