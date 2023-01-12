@@ -38,36 +38,17 @@ struct Args {
 #[repr(align(64))] // Align to cache lines
 pub struct AlignedData<T: ?Sized>(T);
 
-#[derive(Debug)]
-enum Arch {
-    X86_64,
-    AARCH64,
-    UNKNOWN,
-}
-
-fn get_arch(header: &goblin::elf::Header) -> Arch {
+fn build_capstone_handle(header: &goblin::elf::Header) -> Result<capstone::Capstone, capstone::Error> {
     use goblin::elf::header::*;
+    let capstone_new = Capstone::new();
     match header.e_machine {
-        EM_X86_64  => Arch::X86_64,
-        EM_AARCH64 => Arch::AARCH64,
-        _          => Arch::UNKNOWN,
+        EM_X86_64  => capstone_new.x86().mode(arch::x86::ArchMode::Mode64).build(),
+        EM_AARCH64 => capstone_new.arm64().mode(arch::arm64::ArchMode::Arm).build(),
+        _          => unimplemented!(),
     }
 }
 
-fn disasm(bytes: &[u8], addr: u64, arch: &Arch) {
-    let cs = match *arch {
-        Arch::X86_64 => Capstone::new()
-                            .x86()
-                            .mode(arch::x86::ArchMode::Mode64)
-                            .build()
-                            .expect("failed to create capstone handle"),
-        Arch::AARCH64 => Capstone::new()
-                            .arm64()
-                            .mode(arch::arm64::ArchMode::Arm)
-                            .build()
-                            .expect("failed to create capstone handle"),
-        _             => panic!("not supported arch"),
-    };
+fn disasm(bytes: &[u8], addr: u64, cs: &Capstone) {
     match cs.disasm_all(bytes, addr) {
         Ok(insns) => {
             println!("disassembled {} instructions", insns.len());
@@ -76,12 +57,12 @@ fn disasm(bytes: &[u8], addr: u64, arch: &Arch) {
             }
         }
         Err(err) => {
-            println!("error {} while disassembling", err);
+            println!("error {err} while disassembling");
         }
     };
 }
 
-fn elf_summary(bytes: &Vec<u8>, args: &Args) {
+fn elf_summary(bytes: &[u8], args: &Args) {
     match goblin::elf::Elf::parse(&bytes) {
         Ok(binary) => {
             if args.verbose >= 4 {
@@ -91,27 +72,29 @@ fn elf_summary(bytes: &Vec<u8>, args: &Args) {
             //for ph in binary.program_headers {
             //    println!("ph: {:#x?}", &ph);
             //}
-            let arch = get_arch(&binary.header);
-            let sects_to_disasm: HashSet<String> = HashSet::from_iter(args.disasm.clone());
-            if args.verbose >= 3 {
-                println!("sects_to_disasm: {:#x?}", &sects_to_disasm);
-            }
-            for sh in binary.section_headers {
-                let sect_name = binary
-                    .shdr_strtab
-                    .get_at(sh.sh_name)
-                    .unwrap_or("")
-                    .to_string();
-                println!("section {} {:#x?}", &sect_name, &sh);
-                if sects_to_disasm.contains(&sect_name) {
+            match build_capstone_handle(&binary.header) {
+                Ok(cs) => {
+                    let vec_ref_sects: Vec<&str> = args.disasm.iter().map(|s| &**s).collect();
+                    let sects_to_disasm: HashSet<&str> = HashSet::from_iter(vec_ref_sects);
                     if args.verbose >= 3 {
-                        println!("disassembling the section {}", &sect_name);
+                        println!("sects_to_disasm: {:#x?}", &sects_to_disasm);
                     }
-                    let offset = sh.sh_offset as usize;
-                    disasm(&bytes[offset..offset + sh.sh_size as usize], sh.sh_addr, &arch);
+                    for sh in binary.section_headers {
+                        let sect_name = binary.shdr_strtab.get_at(sh.sh_name).unwrap_or_default();
+                        println!("section {} {:#x?}", &sect_name, &sh);
+                        if sects_to_disasm.contains(&sect_name) {
+                            if args.verbose >= 3 {
+                                println!("disassembling the section {}", &sect_name);
+                            }
+                            let offset = sh.sh_offset as usize;
+                            disasm(&bytes[offset..offset + sh.sh_size as usize], sh.sh_addr, &cs);
+                        }
+                    }
+                },
+                Err(err) => {
+                    println!("error {err} while building capstone handle");
                 }
             }
-
             if args.all_syms {
                 let syms = binary.syms.to_vec();
                 for sym in syms {
