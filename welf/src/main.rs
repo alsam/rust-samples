@@ -89,18 +89,27 @@ fn elf_summary(bytes: &[u8], args: &Args) {
                             let offset = sh.sh_offset as usize;
                             disasm(&bytes[offset..offset + sh.sh_size as usize], sh.sh_addr, &cs);
                         }
-                        if sect_name == ".eh_frame_hdr" {
-                            let offset = sh.sh_offset as usize;
-                            let bases = gimli::BaseAddresses::default()
-                                .set_eh_frame_hdr(0);
-                            let eh_frame_hdr = gimli::read::EhFrameHdr::new(&bytes[offset..], gimli::LittleEndian);
-                            let address_size = 8;
-                            let parsed_eh_frame_hdr = eh_frame_hdr.parse(&bases, address_size).unwrap();
-                            println!("eh frame pointer: {:#x?}, CFI table: {:#x?}",
-                                &parsed_eh_frame_hdr.eh_frame_ptr(),
-                                &parsed_eh_frame_hdr.table());
+                        match sect_name {
+                            ".eh_frame_hdr" => {
+                                let offset = sh.sh_offset as usize;
+                                let bases = gimli::BaseAddresses::default()
+                                    .set_eh_frame_hdr(0);
+                                let eh_frame_hdr = gimli::read::EhFrameHdr::new(&bytes[offset..], gimli::LittleEndian);
+                                let address_size = 8;
+                                let parsed_eh_frame_hdr = eh_frame_hdr.parse(&bases, address_size).unwrap();
+                                println!("eh frame pointer: {:#x?}, CFI table: {:#x?}",
+                                    &parsed_eh_frame_hdr.eh_frame_ptr(),
+                                    &parsed_eh_frame_hdr.table());
+                                }
+
+                            ".rodata"|".rdata"|".data.rel.ro"|".data.rel.ro.local" => { // vtable
+                                ;
+                            }
+                            _ => {
+                                ; // just skip it
+                            }
                         }
-                    }
+                   }
                 },
                 Err(err) => {
                     println!("error {err} while building capstone handle");
