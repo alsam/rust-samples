@@ -89,6 +89,18 @@ fn elf_summary(bytes: &[u8], args: &Args) {
                             let offset = sh.sh_offset as usize;
                             disasm(&bytes[offset..offset + sh.sh_size as usize], sh.sh_addr, &cs);
                         }
+                        if sect_name == ".eh_frame_hdr" {
+                            let offset = sh.sh_offset as usize;
+                            let bases = gimli::BaseAddresses::default()
+                                //.set_eh_frame_hdr(&bytes[offset] as *const _ as u64);
+                                //.set_eh_frame_hdr(offset);
+                                .set_eh_frame_hdr(0);
+                            //let eh_frame_hdr = gimli::read::EhFrameHdr::new(&bytes[..], gimli::LittleEndian);
+                            let eh_frame_hdr = gimli::read::EhFrameHdr::new(&bytes[offset..], gimli::LittleEndian);
+                            let address_size = 8;
+                            let parsed_eh_frame_hdr = eh_frame_hdr.parse(&bases, address_size).unwrap();
+                            //println!("parsed_eh_frame_hdr: {:?}", &parsed_eh_frame_hdr);
+                        }
                     }
                 },
                 Err(err) => {
@@ -117,7 +129,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     elf_summary(&buffer, &args);
     // the same with lief
     let path = PathBuf::from_str(&args.elf).unwrap();
-    let binary = Binary::new(path).unwrap();
+    //let binary = Binary::new(path).unwrap();
     // println!("binary: {:#x?}", &binary); // `Binary` doesn't implement `Debug`
     Ok(())
 }
