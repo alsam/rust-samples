@@ -92,14 +92,13 @@ fn elf_summary(bytes: &[u8], args: &Args) {
                         if sect_name == ".eh_frame_hdr" {
                             let offset = sh.sh_offset as usize;
                             let bases = gimli::BaseAddresses::default()
-                                //.set_eh_frame_hdr(&bytes[offset] as *const _ as u64);
-                                //.set_eh_frame_hdr(offset);
                                 .set_eh_frame_hdr(0);
-                            //let eh_frame_hdr = gimli::read::EhFrameHdr::new(&bytes[..], gimli::LittleEndian);
                             let eh_frame_hdr = gimli::read::EhFrameHdr::new(&bytes[offset..], gimli::LittleEndian);
                             let address_size = 8;
                             let parsed_eh_frame_hdr = eh_frame_hdr.parse(&bases, address_size).unwrap();
-                            //println!("parsed_eh_frame_hdr: {:?}", &parsed_eh_frame_hdr);
+                            println!("eh frame pointer: {:#x?}, CFI table: {:#x?}",
+                                &parsed_eh_frame_hdr.eh_frame_ptr(),
+                                &parsed_eh_frame_hdr.table());
                         }
                     }
                 },
