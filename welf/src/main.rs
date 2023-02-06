@@ -1,14 +1,15 @@
 use capstone::prelude::*;
 use clap::Parser;
+use cpp_demangle::Symbol;
 use goblin::elf::sym::{Sym, Symtab};
 use goblin::{error, Object};
+use lief::{Binary, VerificationChecks, VerificationFlags};
+use lief_cwal as lief;
 use std::collections::HashSet;
 use std::error::Error;
 use std::fs;
 use std::path::Path;
 use std::{fs::File, io::Read, path::PathBuf, str::FromStr};
-use lief_cwal as lief;
-use lief::{Binary, VerificationChecks, VerificationFlags};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -38,13 +39,18 @@ struct Args {
 #[repr(align(64))] // Align to cache lines
 pub struct AlignedData<T: ?Sized>(T);
 
-fn build_capstone_handle(header: &goblin::elf::Header) -> Result<capstone::Capstone, capstone::Error> {
+fn build_capstone_handle(
+    header: &goblin::elf::Header,
+) -> Result<capstone::Capstone, capstone::Error> {
     use goblin::elf::header::*;
     let capstone_new = Capstone::new();
     match header.e_machine {
-        EM_X86_64  => capstone_new.x86().mode(arch::x86::ArchMode::Mode64).build(),
-        EM_AARCH64 => capstone_new.arm64().mode(arch::arm64::ArchMode::Arm).build(),
-        _          => unimplemented!(),
+        EM_X86_64 => capstone_new.x86().mode(arch::x86::ArchMode::Mode64).build(),
+        EM_AARCH64 => capstone_new
+            .arm64()
+            .mode(arch::arm64::ArchMode::Arm)
+            .build(),
+        _ => unimplemented!(),
     }
 }
 
@@ -87,30 +93,53 @@ fn elf_summary(bytes: &[u8], args: &Args) {
                                 println!("disassembling the section {}", &sect_name);
                             }
                             let offset = sh.sh_offset as usize;
-                            disasm(&bytes[offset..offset + sh.sh_size as usize], sh.sh_addr, &cs);
+                            disasm(
+                                &bytes[offset..offset + sh.sh_size as usize],
+                                sh.sh_addr,
+                                &cs,
+                            );
                         }
+                        let address_size = 8;
                         match sect_name {
                             ".eh_frame_hdr" => {
                                 let offset = sh.sh_offset as usize;
-                                let bases = gimli::BaseAddresses::default()
-                                    .set_eh_frame_hdr(0);
-                                let eh_frame_hdr = gimli::read::EhFrameHdr::new(&bytes[offset..], gimli::LittleEndian);
-                                let address_size = 8;
-                                let parsed_eh_frame_hdr = eh_frame_hdr.parse(&bases, address_size).unwrap();
-                                println!("eh frame pointer: {:#x?}, CFI table: {:#x?}",
+                                let bases = gimli::BaseAddresses::default().set_eh_frame_hdr(0);
+                                let eh_frame_hdr = gimli::read::EhFrameHdr::new(
+                                    &bytes[offset..],
+                                    gimli::LittleEndian,
+                                );
+                                let parsed_eh_frame_hdr =
+                                    eh_frame_hdr.parse(&bases, address_size).unwrap();
+                                println!(
+                                    "eh frame pointer: {:#x?}, CFI table: {:#x?}",
                                     &parsed_eh_frame_hdr.eh_frame_ptr(),
-                                    &parsed_eh_frame_hdr.table());
-                                }
-
-                            ".rodata"|".rdata"|".data.rel.ro"|".data.rel.ro.local" => { // vtable
-                                ;
+                                    &parsed_eh_frame_hdr.table()
+                                );
                             }
-                            _ => {
-                                ; // just skip it
+
+                            // ground truths and heuristics (H) about Vtables:
+                            // H-1 Vtables have to lie in read-only sections.
+                            // H-2 In a candidate vtable, only the beginning of the
+                            //     function entries is referenced from the code.
+                            // H-3 Offset-to-Top lies within a well-defined range and it
+                            //     is no relocation entry.
+                            // H-4 RTTI either points into a data .data section or is 0.
+                            // H-5 A function entry points into a .text code section or is a
+                            //     relocation entry.
+                            // H-6 (relaxing) The first two function entries may be 0.
+                            ".rodata" | ".rdata" | ".data.rel.ro" | ".data.rel.ro.local" => {
+                                // vtable
+                                let offset = sh.sh_offset as usize;
+                                let scan_end = offset + sh.sh_size as usize;
+                                for o in (offset..scan_end).step_by(address_size.into()) {
+                                    let addr = &bytes[o..address_size as usize];
+                                }
+                            }
+                            _ => { // just skip it
                             }
                         }
-                   }
-                },
+                    }
+                }
                 Err(err) => {
                     println!("error {err} while building capstone handle");
                 }
