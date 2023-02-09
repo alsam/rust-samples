@@ -1,5 +1,6 @@
 use capstone::prelude::*;
 use clap::Parser;
+use core::ops::Range;
 use cpp_demangle::Symbol;
 use goblin::elf::sym::{Sym, Symtab};
 use goblin::{error, Object};
@@ -68,6 +69,43 @@ fn disasm(bytes: &[u8], addr: u64, cs: &Capstone) {
     };
 }
 
+enum SectionRanges {
+    Text(Range<u64>),
+    Data(Range<u64>),
+}
+
+struct ElfSummary {
+    text: Range<u64>,
+    data: Range<u64>,
+}
+
+fn elf_parse(path: &Path, args: &Args) -> ElfSummary {
+    let buffer: Vec<u8> = fs::read(path).unwrap();
+    let elf_image = goblin::elf::Elf::parse(&buffer).unwrap();
+    let sym_sh_name = |idx| elf_image.shdr_strtab.get_at(idx).unwrap_or_default();
+
+    let (mut text_range, mut data_range): (Range<u64>, Range<u64>) = (0..0, 0..0);
+    for sh in elf_image.section_headers {
+        let sect_name = sym_sh_name(sh.sh_name);
+        let sec_beg = sh.sh_offset as u64;
+        let sec_end = sec_beg + sh.sh_size as u64;
+        let r: Range<u64> = sec_beg..sec_end;
+        match sect_name {
+            ".data" => {
+                data_range = r;
+            }
+            ".text" => {
+                text_range = r;
+            }
+            &_ => todo!(),
+        }
+    }
+    ElfSummary {
+        text: text_range,
+        data: data_range,
+    }
+}
+
 fn elf_summary(bytes: &[u8], args: &Args) {
     match goblin::elf::Elf::parse(&bytes) {
         Ok(binary) => {
@@ -99,7 +137,7 @@ fn elf_summary(bytes: &[u8], args: &Args) {
                                 &cs,
                             );
                         }
-                        let address_size = 8;
+                        const ADDRESS_SIZE: u8 = 8;
                         match sect_name {
                             ".eh_frame_hdr" => {
                                 let offset = sh.sh_offset as usize;
@@ -109,7 +147,7 @@ fn elf_summary(bytes: &[u8], args: &Args) {
                                     gimli::LittleEndian,
                                 );
                                 let parsed_eh_frame_hdr =
-                                    eh_frame_hdr.parse(&bases, address_size).unwrap();
+                                    eh_frame_hdr.parse(&bases, ADDRESS_SIZE).unwrap();
                                 println!(
                                     "eh frame pointer: {:#x?}, CFI table: {:#x?}",
                                     &parsed_eh_frame_hdr.eh_frame_ptr(),
@@ -131,8 +169,8 @@ fn elf_summary(bytes: &[u8], args: &Args) {
                                 // vtable
                                 let offset = sh.sh_offset as usize;
                                 let scan_end = offset + sh.sh_size as usize;
-                                for o in (offset..scan_end).step_by(address_size.into()) {
-                                    let addr = &bytes[o..address_size as usize];
+                                for o in (offset..scan_end).step_by(ADDRESS_SIZE.into()) {
+                                    let addr = &bytes[o..ADDRESS_SIZE as usize];
                                 }
                             }
                             _ => { // just skip it
