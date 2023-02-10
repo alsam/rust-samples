@@ -142,7 +142,7 @@ fn elf_summary(bytes: &[u8], args: &Args) {
                                 &cs,
                             );
                         }
-                        const ADDRESS_SIZE: u8 = 8;
+                        const ADDRESS_SIZE: usize = 8;
                         match sect_name {
                             ".eh_frame_hdr" => {
                                 let offset = sh.sh_offset as usize;
@@ -152,7 +152,7 @@ fn elf_summary(bytes: &[u8], args: &Args) {
                                     gimli::LittleEndian,
                                 );
                                 let parsed_eh_frame_hdr =
-                                    eh_frame_hdr.parse(&bases, ADDRESS_SIZE).unwrap();
+                                    eh_frame_hdr.parse(&bases, ADDRESS_SIZE as u8).unwrap();
                                 println!(
                                     "eh frame pointer: {:#x?}, CFI table: {:#x?}",
                                     &parsed_eh_frame_hdr.eh_frame_ptr(),
@@ -175,10 +175,9 @@ fn elf_summary(bytes: &[u8], args: &Args) {
                                 let offset = sh.sh_offset as usize;
                                 let scan_end = offset + sh.sh_size as usize;
                                 for o in (offset..scan_end).step_by(ADDRESS_SIZE.into()) {
-                                    let byte_slice = <[u8; ADDRESS_SIZE as usize]>::try_from(
-                                        &bytes[o..o + ADDRESS_SIZE as usize],
-                                    )
-                                    .unwrap();
+                                    let byte_slice =
+                                        <[u8; ADDRESS_SIZE]>::try_from(&bytes[o..o + ADDRESS_SIZE])
+                                            .unwrap();
                                     //let addr: u64 = byte_slice.read_u64::<LittleEndian>.unwrap();
                                     let addr = u64::from_le_bytes(byte_slice);
                                     println!("addr: {:#8x}", addr);
