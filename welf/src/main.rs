@@ -2,10 +2,11 @@ use capstone::prelude::*;
 use clap::Parser;
 use core::ops::Range;
 use cpp_demangle::Symbol;
+//use byteorder::{LittleEndian; ReadBytexExt}
 use goblin::elf::sym::{Sym, Symtab};
 use goblin::{error, Object};
-use lief::{Binary, VerificationChecks, VerificationFlags};
-use lief_cwal as lief;
+//use lief::{Binary, VerificationChecks, VerificationFlags};
+//use lief_cwal as lief;
 use std::collections::HashSet;
 use std::error::Error;
 use std::fs;
@@ -79,13 +80,17 @@ struct ElfSummary {
     data: Range<u64>,
 }
 
-fn elf_parse(path: &Path, args: &Args) -> ElfSummary {
-    let buffer: Vec<u8> = fs::read(path).unwrap();
-    let elf_image = goblin::elf::Elf::parse(&buffer).unwrap();
-    let sym_sh_name = |idx| elf_image.shdr_strtab.get_at(idx).unwrap_or_default();
+// doesn't compile
+//fn elf_parse1<'a>(path: &'a Path, args: &'a Args) -> goblin::elf::Elf<'a> {
+//    let buffer: Vec<u8> = fs::read(path).unwrap();
+//    let elf_image = goblin::elf::Elf::parse(&buffer[..]).unwrap();
+//    elf_image
+//}
 
+fn elf_parse(elf_image: &goblin::elf::Elf, args: &Args) -> ElfSummary {
+    let sym_sh_name = |idx| elf_image.shdr_strtab.get_at(idx).unwrap_or_default();
     let (mut text_range, mut data_range): (Range<u64>, Range<u64>) = (0..0, 0..0);
-    for sh in elf_image.section_headers {
+    for sh in &elf_image.section_headers {
         let sect_name = sym_sh_name(sh.sh_name);
         let sec_beg = sh.sh_offset as u64;
         let sec_end = sec_beg + sh.sh_size as u64;
@@ -97,7 +102,7 @@ fn elf_parse(path: &Path, args: &Args) -> ElfSummary {
             ".text" => {
                 text_range = r;
             }
-            &_ => todo!(),
+            &_ => {} //todo!(),
         }
     }
     ElfSummary {
@@ -170,7 +175,14 @@ fn elf_summary(bytes: &[u8], args: &Args) {
                                 let offset = sh.sh_offset as usize;
                                 let scan_end = offset + sh.sh_size as usize;
                                 for o in (offset..scan_end).step_by(ADDRESS_SIZE.into()) {
-                                    let addr = &bytes[o..ADDRESS_SIZE as usize];
+                                    let byte_slice = <[u8; ADDRESS_SIZE as usize]>::try_from(
+                                        &bytes[o..o + ADDRESS_SIZE as usize],
+                                    )
+                                    .unwrap();
+                                    //let addr: u64 = byte_slice.read_u64::<LittleEndian>.unwrap();
+                                    let addr = u64::from_le_bytes(byte_slice);
+                                    println!("addr: {:#8x}", addr);
+                                    println!("addr: {:?}", &byte_slice);
                                 }
                             }
                             _ => { // just skip it
@@ -201,6 +213,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
     let elves_path = Path::new(&args.elf);
     let buffer: Vec<u8> = fs::read(elves_path)?;
+    let elf_image = goblin::elf::Elf::parse(&buffer).unwrap();
+    let esummary = elf_parse(&elf_image, &args);
     elf_summary(&buffer, &args);
     // the same with lief
     let path = PathBuf::from_str(&args.elf).unwrap();

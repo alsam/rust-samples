@@ -11,6 +11,7 @@ clap = { version = "^4", features = ["derive"] }
 cpp_demangle = "0.4.0"
 gimli = "0.27.0"
 goblin = "0.6"
+byteorder = "1.4.3"
 indicatif = "0.17.3"
 #leb128 = "0.2.5" #gimli already has had leb128
-lief-cwal = "0.1.0"
+#lief-cwal = "0.1.0"
