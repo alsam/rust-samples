@@ -75,9 +75,21 @@ enum SectionRanges {
     Data(Range<u64>),
 }
 
+#[derive(Debug)]
 struct ElfSummary {
     text: Range<u64>,
     data: Range<u64>,
+}
+
+impl ElfSummary {
+    #[inline]
+    fn in_text(&self, addr: &u64) -> bool {
+        self.text.contains(&addr)
+    }
+    #[inline]
+    fn in_data(&self, addr: &u64) -> bool {
+        self.data.contains(&addr)
+    }
 }
 
 // doesn't compile
@@ -98,9 +110,17 @@ fn elf_parse(elf_image: &goblin::elf::Elf, args: &Args) -> ElfSummary {
         match sect_name {
             ".data" => {
                 data_range = r;
+                println!(
+                    "data_range: {:#8x}..{:#8x}",
+                    data_range.start, data_range.end
+                );
             }
             ".text" => {
                 text_range = r;
+                println!(
+                    "text_range: {:#8x}..{:#8x}",
+                    text_range.start, text_range.end
+                );
             }
             &_ => {} //todo!(),
         }
@@ -111,7 +131,7 @@ fn elf_parse(elf_image: &goblin::elf::Elf, args: &Args) -> ElfSummary {
     }
 }
 
-fn elf_summary(bytes: &[u8], args: &Args) {
+fn elf_summary(bytes: &[u8], esum: &ElfSummary, args: &Args) {
     match goblin::elf::Elf::parse(&bytes) {
         Ok(binary) => {
             if args.verbose >= 4 {
@@ -178,9 +198,13 @@ fn elf_summary(bytes: &[u8], args: &Args) {
                                     let byte_slice =
                                         <[u8; ADDRESS_SIZE]>::try_from(&bytes[o..o + ADDRESS_SIZE])
                                             .unwrap();
-                                    //let addr: u64 = byte_slice.read_u64::<LittleEndian>.unwrap();
                                     let addr = u64::from_le_bytes(byte_slice);
-                                    println!("addr: {:#8x}", addr);
+                                    println!(
+                                        "addr: {:#8x} in_text: {} in_data: {}",
+                                        addr,
+                                        esum.in_text(&addr),
+                                        esum.in_data(&addr)
+                                    );
                                     println!("addr: {:?}", &byte_slice);
                                 }
                             }
@@ -214,7 +238,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     let buffer: Vec<u8> = fs::read(elves_path)?;
     let elf_image = goblin::elf::Elf::parse(&buffer).unwrap();
     let esummary = elf_parse(&elf_image, &args);
-    elf_summary(&buffer, &args);
+    println!("esummary: {:?}", &esummary);
+    elf_summary(&buffer, &esummary, &args);
     // the same with lief
     let path = PathBuf::from_str(&args.elf).unwrap();
     //let binary = Binary::new(path).unwrap();
