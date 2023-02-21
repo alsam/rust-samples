@@ -37,10 +37,6 @@ struct Args {
     verbose: u8,
 }
 
-#[repr(C)]
-#[repr(align(64))] // Align to cache lines
-pub struct AlignedData<T: ?Sized>(T);
-
 fn build_capstone_handle(
     header: &goblin::elf::Header,
 ) -> Result<capstone::Capstone, capstone::Error> {
@@ -75,59 +71,57 @@ enum SectionRanges {
     Data(Range<u64>),
 }
 
+//pub type ElfImage<'a> = goblin::elf::Elf<'a>;
+
 #[derive(Debug)]
 struct ElfSummary {
     text: Range<u64>,
     data: Range<u64>,
+    //elf_image: &goblin::elf::Elf,
 }
 
 impl ElfSummary {
-    #[inline]
-    fn in_text(&self, addr: &u64) -> bool {
-        self.text.contains(&addr)
-    }
-    #[inline]
-    fn in_data(&self, addr: &u64) -> bool {
-        self.data.contains(&addr)
-    }
-}
-
-// doesn't compile
-//fn elf_parse1<'a>(path: &'a Path, args: &'a Args) -> goblin::elf::Elf<'a> {
-//    let buffer: Vec<u8> = fs::read(path).unwrap();
-//    let elf_image = goblin::elf::Elf::parse(&buffer[..]).unwrap();
-//    elf_image
-//}
-
-fn elf_parse(elf_image: &goblin::elf::Elf, args: &Args) -> ElfSummary {
-    let sym_sh_name = |idx| elf_image.shdr_strtab.get_at(idx).unwrap_or_default();
-    let (mut text_range, mut data_range): (Range<u64>, Range<u64>) = (0..0, 0..0);
-    for sh in &elf_image.section_headers {
-        let sect_name = sym_sh_name(sh.sh_name);
-        let sec_beg = sh.sh_offset as u64;
-        let sec_end = sec_beg + sh.sh_size as u64;
-        let r: Range<u64> = sec_beg..sec_end;
-        match sect_name {
-            ".data" => {
-                data_range = r;
-                println!(
-                    "data_range: {:#8x}..{:#8x}",
-                    data_range.start, data_range.end
-                );
+    pub fn new(elf_image: &goblin::elf::Elf) -> ElfSummary {
+        let sym_sh_name = |idx| elf_image.shdr_strtab.get_at(idx).unwrap_or_default();
+        let (mut text_range, mut data_range): (Range<u64>, Range<u64>) = (0..0, 0..0);
+        for sh in &elf_image.section_headers {
+            let sect_name = sym_sh_name(sh.sh_name);
+            let sec_beg = sh.sh_offset as u64;
+            let sec_end = sec_beg + sh.sh_size as u64;
+            let r: Range<u64> = sec_beg..sec_end;
+            match sect_name {
+                ".data" => {
+                    data_range = r;
+                    println!(
+                        "data_range: {:#8x}..{:#8x}",
+                        data_range.start, data_range.end
+                    );
+                }
+                ".text" => {
+                    text_range = r;
+                    println!(
+                        "text_range: {:#8x}..{:#8x}",
+                        text_range.start, text_range.end
+                    );
+                }
+                &_ => {} //todo!(),
             }
-            ".text" => {
-                text_range = r;
-                println!(
-                    "text_range: {:#8x}..{:#8x}",
-                    text_range.start, text_range.end
-                );
-            }
-            &_ => {} //todo!(),
+        }
+        ElfSummary {
+            text: text_range,
+            data: data_range,
+            //elf_image: elf_image,
         }
     }
-    ElfSummary {
-        text: text_range,
-        data: data_range,
+
+    #[inline]
+    pub fn in_text(&self, addr: &u64) -> bool {
+        self.text.contains(&addr)
+    }
+
+    #[inline]
+    pub fn in_data(&self, addr: &u64) -> bool {
+        self.data.contains(&addr)
     }
 }
 
@@ -237,11 +231,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     let elves_path = Path::new(&args.elf);
     let buffer: Vec<u8> = fs::read(elves_path)?;
     let elf_image = goblin::elf::Elf::parse(&buffer).unwrap();
-    let esummary = elf_parse(&elf_image, &args);
+    let esummary = ElfSummary::new(&elf_image);
     println!("esummary: {:?}", &esummary);
     elf_summary(&buffer, &esummary, &args);
     // the same with lief
-    let path = PathBuf::from_str(&args.elf).unwrap();
+    //let path = PathBuf::from_str(&args.elf).unwrap();
     //let binary = Binary::new(path).unwrap();
     // println!("binary: {:#x?}", &binary); // `Binary` doesn't implement `Debug`
     Ok(())
