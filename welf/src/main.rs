@@ -77,11 +77,13 @@ enum SectionRanges {
 struct ElfSummary {
     text: Range<u64>,
     data: Range<u64>,
+    //raw: &[u8],
     //elf_image: &goblin::elf::Elf,
 }
 
 impl ElfSummary {
-    pub fn new(elf_image: &goblin::elf::Elf) -> ElfSummary {
+    pub fn new(bytes: &[u8]) -> ElfSummary {
+        let elf_image = goblin::elf::Elf::parse(&bytes).unwrap();
         let sym_sh_name = |idx| elf_image.shdr_strtab.get_at(idx).unwrap_or_default();
         let (mut text_range, mut data_range): (Range<u64>, Range<u64>) = (0..0, 0..0);
         for sh in &elf_image.section_headers {
@@ -110,6 +112,7 @@ impl ElfSummary {
         ElfSummary {
             text: text_range,
             data: data_range,
+            //raw: bytes,
             //elf_image: elf_image,
         }
     }
@@ -231,7 +234,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let elves_path = Path::new(&args.elf);
     let buffer: Vec<u8> = fs::read(elves_path)?;
     let elf_image = goblin::elf::Elf::parse(&buffer).unwrap();
-    let esummary = ElfSummary::new(&elf_image);
+    let esummary = ElfSummary::new(&buffer);
     println!("esummary: {:?}", &esummary);
     elf_summary(&buffer, &esummary, &args);
     // the same with lief
