@@ -8,7 +8,7 @@ use goblin::elf::sym::{Sym, Symtab};
 use goblin::{error, Object};
 //use lief::{Binary, VerificationChecks, VerificationFlags};
 //use lief_cwal as lief;
-use std::collections::HashSet;
+use std::collections::{HashSet, HashMap};
 use std::error::Error;
 use std::fs;
 use std::path::Path;
@@ -86,6 +86,7 @@ pub type ElfImage<'a> = goblin::elf::Elf<'a>;
 struct ElfSummary<'a> {
     text: Range<u64>,
     data: Range<u64>,
+    sect_ranges: HashMap::<&'a str, Range<u64>>,
     raw: Box<&'a [u8]>,
     elf_image: Box<&'a ElfImage<'a>>,
 }
@@ -95,6 +96,7 @@ impl ElfSummary<'_> {
         println!("+++ {:?}", mem::size_of::<ElfImage<'_>>());
         let sym_sh_name = |idx| elf_image.shdr_strtab.get_at(idx).unwrap_or_default();
         let (mut text_range, mut data_range): (Range<u64>, Range<u64>) = (0..0, 0..0);
+        let mut sect_r: HashMap<&'a str, Range<u64>> = HashMap::new();
         for sh in &elf_image.section_headers {
             let sect_name = sym_sh_name(sh.sh_name);
             let sec_beg = sh.sh_offset as u64;
@@ -115,12 +117,13 @@ impl ElfSummary<'_> {
                         text_range.start, text_range.end
                     );
                 }
-                &_ => {}, // unimplemented!(),
+                o => { sect_r.insert(o, r); },
             }
         }
         ElfSummary {
             text: text_range,
             data: data_range,
+            sect_ranges: sect_r,
             raw: Box::new(bytes),
             elf_image: Box::new(&elf_image),
         }
@@ -244,8 +247,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     let buffer: Vec<u8> = fs::read(elves_path)?;
     let elf_image = goblin::elf::Elf::parse(&buffer).unwrap();
     let esummary = ElfSummary::new(&elf_image, &buffer);
-    println!("esummary.text: {:?} esummary.data: {:?} raw[0]: {:} elf_image: {:#x?}",
-        esummary.text, esummary.data, (*esummary.raw)[0], &esummary.elf_image);
+    println!("esummary.sect_ranges: {:#x?} esummary.text: {:?} esummary.data: {:?} raw[0]: {:} elf_image: {:#x?}",
+        esummary.sect_ranges, esummary.text, esummary.data, (*esummary.raw)[0], &esummary.elf_image);
     elf_summary(&buffer, &esummary, &args);
     // the same with lief
     //let path = PathBuf::from_str(&args.elf).unwrap();
