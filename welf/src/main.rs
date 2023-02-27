@@ -1,3 +1,4 @@
+use capstone::Instructions;
 use capstone::prelude::*;
 use clap::Parser;
 use core::ops::Range;
@@ -44,10 +45,15 @@ fn build_capstone_handle(
     use goblin::elf::header::*;
     let capstone_new = Capstone::new();
     match header.e_machine {
-        EM_X86_64 => capstone_new.x86().mode(arch::x86::ArchMode::Mode64).build(),
+        EM_X86_64 => capstone_new
+            .x86()
+            .mode(arch::x86::ArchMode::Mode64)
+            .detail(true)
+            .build(),
         EM_AARCH64 => capstone_new
             .arm64()
             .mode(arch::arm64::ArchMode::Arm)
+            .detail(true)
             .build(),
         _ => unimplemented!(),
     }
@@ -56,7 +62,9 @@ fn build_capstone_handle(
 fn disasm(bytes: &[u8], addr: u64, cs: &Capstone) {
     match cs.disasm_all(bytes, addr) {
         Ok(insns) => {
-            println!("disassembled {} instructions", insns.len());
+            println!("disassembled {} instructions each has size: {:}",
+                insns.len(), 0);
+                //insns.len(), mem::size_of::<capstone::instruction::Insn<'_>>());
             for i in insns.iter() {
                 println!("{}", i);
             }
