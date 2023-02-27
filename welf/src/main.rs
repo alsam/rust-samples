@@ -74,14 +74,13 @@ enum SectionRanges {
 //pub type ElfImage<'a> = goblin::elf::Elf<'a>;
 
 #[derive(Debug)]
-struct ElfSummary {
+struct ElfSummary<'a> {
     text: Range<u64>,
     data: Range<u64>,
-    //raw: &[u8],
-    //elf_image: &goblin::elf::Elf,
+    raw: Box<&'a [u8]>,
 }
 
-impl ElfSummary {
+impl ElfSummary<'_> {
     pub fn new(bytes: &[u8]) -> ElfSummary {
         let elf_image = goblin::elf::Elf::parse(&bytes).unwrap();
         let sym_sh_name = |idx| elf_image.shdr_strtab.get_at(idx).unwrap_or_default();
@@ -112,8 +111,7 @@ impl ElfSummary {
         ElfSummary {
             text: text_range,
             data: data_range,
-            //raw: bytes,
-            //elf_image: elf_image,
+            raw: Box::new(bytes),
         }
     }
 
@@ -233,9 +231,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
     let elves_path = Path::new(&args.elf);
     let buffer: Vec<u8> = fs::read(elves_path)?;
-    let elf_image = goblin::elf::Elf::parse(&buffer).unwrap();
     let esummary = ElfSummary::new(&buffer);
-    println!("esummary: {:?}", &esummary);
+    println!("esummary.text: {:?} esummary.data: {:?} raw[0]: {:}",
+        esummary.text, esummary.data, (*esummary.raw)[0]);
     elf_summary(&buffer, &esummary, &args);
     // the same with lief
     //let path = PathBuf::from_str(&args.elf).unwrap();
