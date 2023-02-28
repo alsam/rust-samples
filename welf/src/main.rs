@@ -39,9 +39,8 @@ struct Args {
     verbose: u8,
 }
 
-fn build_capstone_handle(
-    header: &goblin::elf::Header,
-) -> Result<capstone::Capstone, capstone::Error> {
+fn build_capstone_handle(header: &goblin::elf::Header)
+        -> Result<capstone::Capstone, capstone::Error> {
     use goblin::elf::header::*;
     let capstone_new = Capstone::new();
     match header.e_machine {
@@ -62,9 +61,7 @@ fn build_capstone_handle(
 fn disasm(bytes: &[u8], addr: u64, cs: &Capstone) {
     match cs.disasm_all(bytes, addr) {
         Ok(insns) => {
-            println!("disassembled {} instructions each has size: {:}",
-                insns.len(), 0);
-                //insns.len(), mem::size_of::<capstone::instruction::Insn<'_>>());
+            println!("disassembled {} instructions", insns.len());
             for i in insns.iter() {
                 println!("{}", i);
             }
@@ -88,11 +85,12 @@ struct ElfSummary<'a> {
     data: Range<u64>,
     sect_ranges: HashMap::<&'a str, Range<u64>>,
     raw: Box<&'a [u8]>,
-    elf_image: Box<&'a ElfImage<'a>>,
+    elf_image: ElfImage<'a>,
 }
 
 impl ElfSummary<'_> {
-    pub fn new<'a>(elf_image: &'a ElfImage<'a>, bytes: &'a [u8]) -> ElfSummary<'a> {
+    pub fn new<'a>(bytes: &'a [u8]) -> ElfSummary<'a> {
+        let elf_image = goblin::elf::Elf::parse(&bytes).unwrap();
         println!("+++ {:?}", mem::size_of::<ElfImage<'_>>());
         let sym_sh_name = |idx| elf_image.shdr_strtab.get_at(idx).unwrap_or_default();
         let (mut text_range, mut data_range): (Range<u64>, Range<u64>) = (0..0, 0..0);
@@ -125,18 +123,21 @@ impl ElfSummary<'_> {
             data: data_range,
             sect_ranges: sect_r,
             raw: Box::new(bytes),
-            elf_image: Box::new(&elf_image),
+            elf_image: elf_image,
         }
     }
 
     #[inline]
-    pub fn in_text(&self, addr: &u64) -> bool {
+    pub fn in_text(&self, addr: u64) -> bool {
         self.text.contains(&addr)
     }
 
     #[inline]
-    pub fn in_data(&self, addr: &u64) -> bool {
+    pub fn in_data(&self, addr: u64) -> bool {
         self.data.contains(&addr)
+    }
+
+    fn disasm(&self, addr: u64) {
     }
 }
 
@@ -211,8 +212,8 @@ fn elf_summary(bytes: &[u8], esum: &ElfSummary, args: &Args) {
                                     println!(
                                         "addr: {:#8x} in_text: {} in_data: {}",
                                         addr,
-                                        esum.in_text(&addr),
-                                        esum.in_data(&addr)
+                                        esum.in_text(addr),
+                                        esum.in_data(addr)
                                     );
                                     println!("addr: {:?}", &byte_slice);
                                 }
@@ -245,8 +246,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
     let elves_path = Path::new(&args.elf);
     let buffer: Vec<u8> = fs::read(elves_path)?;
-    let elf_image = goblin::elf::Elf::parse(&buffer).unwrap();
-    let esummary = ElfSummary::new(&elf_image, &buffer);
+    let esummary = ElfSummary::new(&buffer);
     println!("esummary.sect_ranges: {:#x?} esummary.text: {:?} esummary.data: {:?} raw[0]: {:} elf_image: {:#x?}",
         esummary.sect_ranges, esummary.text, esummary.data, (*esummary.raw)[0], &esummary.elf_image);
     elf_summary(&buffer, &esummary, &args);
