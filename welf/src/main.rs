@@ -86,6 +86,7 @@ struct ElfSummary<'a> {
     sect_ranges: HashMap::<&'a str, Range<u64>>,
     raw: Box<&'a [u8]>,
     elf_image: ElfImage<'a>,
+    cs: capstone::Capstone,
 }
 
 impl ElfSummary<'_> {
@@ -118,12 +119,14 @@ impl ElfSummary<'_> {
                 o => { sect_r.insert(o, r); },
             }
         }
+        let cs = build_capstone_handle(&elf_image.header).unwrap();
         ElfSummary {
             text: text_range,
             data: data_range,
             sect_ranges: sect_r,
             raw: Box::new(bytes),
             elf_image: elf_image,
+            cs: cs,
         }
     }
 
@@ -137,7 +140,8 @@ impl ElfSummary<'_> {
         self.data.contains(&addr)
     }
 
-    fn disasm(&self, addr: u64) {
+    fn disasm(&self, addr: u64) -> Result<Instructions, capstone::Error> {
+        self.cs.disasm_all(*self.raw, addr)
     }
 }
 
