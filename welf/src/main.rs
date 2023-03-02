@@ -105,22 +105,22 @@ impl ElfSummary<'_> {
         }
     }
 
-    // TODO consider using macros
     #[inline]
-    pub fn in_text(&self, addr: u64) -> bool {
-        match self.sect_ranges.get(&".text") {
-            Some(&ref text_r) => text_r.contains(&addr),
+    pub fn in_sect(&self, sect_name: &str, addr: u64) -> bool {
+        match self.sect_ranges.get(&sect_name) {
+            Some(&ref sect_r) => sect_r.contains(&addr),
             _ => false,
         }
     }
 
-    // TODO consider using macros
+    #[inline]
+    pub fn in_text(&self, addr: u64) -> bool {
+        self.in_sect(".text", addr)
+    }
+
     #[inline]
     pub fn in_data(&self, addr: u64) -> bool {
-        match self.sect_ranges.get(&".data") {
-            Some(&ref data_r) => data_r.contains(&addr),
-            _ => false,
-        }
+        self.in_sect(".data", addr)
     }
 
     fn disasm(&self, addr: u64) -> Result<Instructions, capstone::Error> {
