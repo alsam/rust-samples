@@ -72,17 +72,10 @@ fn disasm(bytes: &[u8], addr: u64, cs: &Capstone) {
     };
 }
 
-enum SectionRanges {
-    Text(Range<u64>),
-    Data(Range<u64>),
-}
-
 pub type ElfImage<'a> = goblin::elf::Elf<'a>;
 
 #[derive(Debug)]
 struct ElfSummary<'a> {
-    text: Range<u64>,
-    data: Range<u64>,
     sect_ranges: HashMap::<&'a str, Range<u64>>,
     raw: Box<&'a [u8]>,
     elf_image: ElfImage<'a>,
@@ -101,28 +94,10 @@ impl ElfSummary<'_> {
             let sec_beg = sh.sh_offset as u64;
             let sec_end = sec_beg + sh.sh_size as u64;
             let r: Range<u64> = sec_beg..sec_end;
-            match sect_name {
-                ".data" => {
-                    data_range = r;
-                    println!(
-                        "data_range: {:#8x}..{:#8x}",
-                        data_range.start, data_range.end
-                    );
-                }
-                ".text" => {
-                    text_range = r;
-                    println!(
-                        "text_range: {:#8x}..{:#8x}",
-                        text_range.start, text_range.end
-                    );
-                }
-                o => { sect_r.insert(o, r); },
-            }
+            sect_r.insert(sect_name, r);
         }
         let cs = build_capstone_handle(&elf_image.header).unwrap();
         ElfSummary {
-            text: text_range,
-            data: data_range,
             sect_ranges: sect_r,
             raw: Box::new(bytes),
             elf_image: elf_image,
@@ -130,14 +105,22 @@ impl ElfSummary<'_> {
         }
     }
 
+    // TODO consider using macros
     #[inline]
     pub fn in_text(&self, addr: u64) -> bool {
-        self.text.contains(&addr)
+        match self.sect_ranges.get(&".text") {
+            Some(&ref text_r) => text_r.contains(&addr),
+            _ => false,
+        }
     }
 
+    // TODO consider using macros
     #[inline]
     pub fn in_data(&self, addr: u64) -> bool {
-        self.data.contains(&addr)
+        match self.sect_ranges.get(&".data") {
+            Some(&ref data_r) => data_r.contains(&addr),
+            _ => false,
+        }
     }
 
     fn disasm(&self, addr: u64) -> Result<Instructions, capstone::Error> {
@@ -252,7 +235,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     let buffer: Vec<u8> = fs::read(elves_path)?;
     let esummary = ElfSummary::new(&buffer);
     println!("esummary.sect_ranges: {:#x?} esummary.text: {:?} esummary.data: {:?} raw[0]: {:} elf_image: {:#x?}",
-        esummary.sect_ranges, esummary.text, esummary.data, (*esummary.raw)[0], &esummary.elf_image);
+        esummary.sect_ranges,
+        esummary.sect_ranges.get(&".text"),
+        esummary.sect_ranges.get(&".data"),
+        (*esummary.raw)[0], &esummary.elf_image);
     elf_summary(&buffer, &esummary, &args);
     // the same with lief
     //let path = PathBuf::from_str(&args.elf).unwrap();
