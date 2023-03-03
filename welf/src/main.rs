@@ -87,7 +87,6 @@ impl ElfSummary<'_> {
         let elf_image = goblin::elf::Elf::parse(&bytes).unwrap();
         println!("+++ {:?}", mem::size_of::<ElfImage<'_>>());
         let sym_sh_name = |idx| elf_image.shdr_strtab.get_at(idx).unwrap_or_default();
-        let (mut text_range, mut data_range): (Range<u64>, Range<u64>) = (0..0, 0..0);
         let mut sect_r: HashMap<&'a str, Range<u64>> = HashMap::new();
         for sh in &elf_image.section_headers {
             let sect_name = sym_sh_name(sh.sh_name);
