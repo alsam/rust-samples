@@ -75,8 +75,16 @@ fn disasm(bytes: &[u8], addr: u64, cs: &Capstone) {
 pub type ElfImage<'a> = goblin::elf::Elf<'a>;
 
 #[derive(Debug)]
+struct SectInfo {
+    addr_range: Range<u64>,
+    executable: bool,
+}
+
+type SectMap<'a> = HashMap<&'a str, SectInfo>;
+
+#[derive(Debug)]
 struct ElfSummary<'a> {
-    sect_ranges: HashMap::<&'a str, Range<u64>>,
+    sect_info: SectMap<'a>,
     raw: Box<&'a [u8]>,
     elf_image: ElfImage<'a>,
     cs: capstone::Capstone,
@@ -84,20 +92,22 @@ struct ElfSummary<'a> {
 
 impl ElfSummary<'_> {
     pub fn new<'a>(bytes: &'a [u8]) -> ElfSummary<'a> {
-        let elf_image = goblin::elf::Elf::parse(&bytes).unwrap();
+        use goblin::elf::*;
+        let elf_image = Elf::parse(&bytes).unwrap();
         println!("+++ {:?}", mem::size_of::<ElfImage<'_>>());
         let sym_sh_name = |idx| elf_image.shdr_strtab.get_at(idx).unwrap_or_default();
-        let mut sect_r: HashMap<&'a str, Range<u64>> = HashMap::new();
+        let mut sect_i: SectMap<'a> = HashMap::new();
         for sh in &elf_image.section_headers {
             let sect_name = sym_sh_name(sh.sh_name);
             let sec_beg = sh.sh_offset as u64;
             let sec_end = sec_beg + sh.sh_size as u64;
-            let r: Range<u64> = sec_beg..sec_end;
-            sect_r.insert(sect_name, r);
+            let si = SectInfo { addr_range: sec_beg..sec_end,
+                                executable: (sh.sh_flags & section_header::SHF_EXECINSTR as u64) != 0}; 
+            sect_i.insert(sect_name, si);
         }
         let cs = build_capstone_handle(&elf_image.header).unwrap();
         ElfSummary {
-            sect_ranges: sect_r,
+            sect_info: sect_i,
             raw: Box::new(bytes),
             elf_image: elf_image,
             cs: cs,
@@ -106,8 +116,8 @@ impl ElfSummary<'_> {
 
     #[inline]
     pub fn in_sect(&self, sect_name: &str, addr: u64) -> bool {
-        match self.sect_ranges.get(&sect_name) {
-            Some(&ref sect_r) => sect_r.contains(&addr),
+        match self.sect_info.get(&sect_name) {
+            Some(&ref sect_i) => sect_i.addr_range.contains(&addr),
             _ => false,
         }
     }
@@ -234,9 +244,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     let buffer: Vec<u8> = fs::read(elves_path)?;
     let esummary = ElfSummary::new(&buffer);
     println!("esummary.sect_ranges: {:#x?} esummary.text: {:?} esummary.data: {:?} raw[0]: {:} elf_image: {:#x?}",
-        esummary.sect_ranges,
-        esummary.sect_ranges.get(&".text"),
-        esummary.sect_ranges.get(&".data"),
+        esummary.sect_info,
+        esummary.sect_info.get(&".text"),
+        esummary.sect_info.get(&".data"),
         (*esummary.raw)[0], &esummary.elf_image);
     elf_summary(&buffer, &esummary, &args);
     // the same with lief
