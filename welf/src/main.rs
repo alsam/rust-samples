@@ -85,7 +85,7 @@ type SectMap<'a> = HashMap<&'a str, SectInfo>;
 #[derive(Debug)]
 struct ElfSummary<'a> {
     sect_info: SectMap<'a>,
-    raw: Box<&'a [u8]>,
+    raw: &'a [u8],
     elf_image: ElfImage<'a>,
     cs: capstone::Capstone,
 }
@@ -93,7 +93,7 @@ struct ElfSummary<'a> {
 impl ElfSummary<'_> {
     pub fn new<'a>(bytes: &'a [u8]) -> ElfSummary<'a> {
         use goblin::elf::*;
-        let elf_image = Elf::parse(&bytes).unwrap();
+        let elf_image = Elf::parse(bytes).unwrap();
         println!("+++ {:?}", mem::size_of::<ElfImage<'_>>());
         let sym_sh_name = |idx| elf_image.shdr_strtab.get_at(idx).unwrap_or_default();
         let mut sect_i: SectMap<'a> = HashMap::new();
@@ -102,22 +102,22 @@ impl ElfSummary<'_> {
             let sec_beg = sh.sh_offset as u64;
             let sec_end = sec_beg + sh.sh_size as u64;
             let si = SectInfo { addr_range: sec_beg..sec_end,
-                                executable: (sh.sh_flags & section_header::SHF_EXECINSTR as u64) != 0}; 
+                                executable: (sh.sh_flags & section_header::SHF_EXECINSTR as u64) != 0};
             sect_i.insert(sect_name, si);
         }
         let cs = build_capstone_handle(&elf_image.header).unwrap();
         ElfSummary {
             sect_info: sect_i,
-            raw: Box::new(bytes),
-            elf_image: elf_image,
-            cs: cs,
+            raw: bytes,
+            elf_image,
+            cs,
         }
     }
 
     #[inline]
     pub fn in_sect(&self, sect_name: &str, addr: u64) -> bool {
         match self.sect_info.get(&sect_name) {
-            Some(&ref sect_i) => sect_i.addr_range.contains(&addr),
+            Some(sect_i) => sect_i.addr_range.contains(&addr),
             _ => false,
         }
     }
@@ -133,7 +133,7 @@ impl ElfSummary<'_> {
     }
 
     fn disasm(&self, addr: u64) -> Result<Instructions, capstone::Error> {
-        self.cs.disasm_all(*self.raw, addr)
+        self.cs.disasm_all(self.raw, addr)
     }
 }
 
